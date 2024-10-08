@@ -1,0 +1,6 @@
+package com.phoringit.pmart
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity: FlutterActivity() {
+}
