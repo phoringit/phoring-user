@@ -5,6 +5,7 @@ import 'package:flutter_sixvalley_ecommerce/features/chat/controllers/chat_contr
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/models/navigation_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/widgets/dashboard_menu_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/deal/controllers/flash_deal_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/restock/controllers/restock_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/search_product/controllers/search_product_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wishlist/controllers/wishlist_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/network_info.dart';
@@ -41,21 +42,26 @@ class DashBoardScreenState extends State<DashBoardScreen> {
   @override
   void initState() {
     super.initState();
-
+    Provider.of<FlashDealController>(context, listen: false).getFlashDealList(true, true);
     if(Provider.of<AuthController>(context, listen: false).isLoggedIn()) {
       Provider.of<WishListController>(context, listen: false).getWishList();
       Provider.of<ChatController>(context, listen: false).getChatList(1, reload: false, userType: 0);
       Provider.of<ChatController>(context, listen: false).getChatList(1, reload: false, userType: 1);
+      Provider.of<RestockController>(context, listen: false).getRestockProductList(1, getAll: true);
     }
 
     final SplashController splashController = Provider.of<SplashController>(context, listen: false);
     singleVendor = splashController.configModel?.businessMode == "single";
-    Provider.of<FlashDealController>(context, listen: false).getFlashDealList(true, true);
     Provider.of<SearchProductController>(context, listen: false).getAuthorList(null);
     Provider.of<SearchProductController>(context, listen: false).getPublishingHouseList(null);
 
     if(splashController.configModel!.activeTheme == "default") {
+      // WidgetsBinding.instance.addPostFrameCallback((_) {
+      //
+      // });
+
       HomePage.loadData(false);
+
     }else if(splashController.configModel!.activeTheme == "theme_aster") {
       AsterThemeHomeScreen.loadData(false);
     }else{

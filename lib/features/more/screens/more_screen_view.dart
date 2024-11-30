@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_sixvalley_ecommerce/features/auth/screens/auth_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/screens/login_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/loyaltyPoint/controllers/loyalty_point_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_details/screens/guest_track_order_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/profile/screens/profile_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/screens/profile_screen1.dart';
+import 'package:flutter_sixvalley_ecommerce/features/restock/screens/restock_list_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/support/screens/support_ticket_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wallet/controllers/wallet_controller.dart';
@@ -134,6 +133,10 @@ class _MoreScreenState extends State<MoreScreen> {
                         MenuButtonWidget(image: Images.category, title: getTranslated('CATEGORY', context),
                             navigateTo: const CategoryScreen()),
 
+                        if(Provider.of<AuthController>(context, listen: false).isLoggedIn())
+                          MenuButtonWidget(image: Images.settings, title: getTranslated('restock_requests', context),
+                              navigateTo: const RestockListScreen()),
+
                         if(splashController.configModel!.activeTheme != "default" && authController.isLoggedIn())
                           MenuButtonWidget(image: Images.compare, title: getTranslated('compare_products', context),
                               navigateTo: const CompareProductScreen()),
@@ -226,8 +229,8 @@ class _MoreScreenState extends State<MoreScreen> {
               Padding(padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
                   child: Row(mainAxisAlignment: MainAxisAlignment.center,
                       children: [Text('${getTranslated('version', context)} ${AppConstants.appVersion}',
-                          style: textRegular.copyWith(fontSize: Dimensions.fontSizeLarge,
-                              color: Theme.of(context).hintColor))]))
+                        style: textRegular.copyWith(fontSize: Dimensions.fontSizeLarge,
+                          color: Theme.of(context).hintColor))]))
 
             ]),
           ),)

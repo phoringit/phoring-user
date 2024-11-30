@@ -39,7 +39,7 @@ class ReviewModel {
     _customer = customer;
     _attachmentFullUrl = attachmentFullUrl;
     if (reply != null) {
-      this._reply = reply;
+      _reply = reply;
     }
   }
 
@@ -96,8 +96,8 @@ class ReviewModel {
     if (_customer != null) {
       data['customer'] = _customer!.toJson();
     }
-    if (this._reply != null) {
-      data['reply'] = this._reply!.toJson();
+    if (_reply != null) {
+      data['reply'] = _reply!.toJson();
     }
     return data;
   }
@@ -241,25 +241,25 @@ class Reply {
         String? createdAt,
         String? updatedAt}) {
     if (id != null) {
-      this._id = id;
+      _id = id;
     }
     if (reviewId != null) {
-      this._reviewId = reviewId;
+      _reviewId = reviewId;
     }
     if (addedById != null) {
-      this._addedById = addedById;
+      _addedById = addedById;
     }
     if (addedBy != null) {
-      this._addedBy = addedBy;
+      _addedBy = addedBy;
     }
     if (replyText != null) {
-      this._replyText = replyText;
+      _replyText = replyText;
     }
     if (createdAt != null) {
-      this._createdAt = createdAt;
+      _createdAt = createdAt;
     }
     if (updatedAt != null) {
-      this._updatedAt = updatedAt;
+      _updatedAt = updatedAt;
     }
   }
 
@@ -290,13 +290,13 @@ class Reply {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this._id;
-    data['review_id'] = this._reviewId;
-    data['added_by_id'] = this._addedById;
-    data['added_by'] = this._addedBy;
-    data['reply_text'] = this._replyText;
-    data['created_at'] = this._createdAt;
-    data['updated_at'] = this._updatedAt;
+    data['id'] = _id;
+    data['review_id'] = _reviewId;
+    data['added_by_id'] = _addedById;
+    data['added_by'] = _addedBy;
+    data['reply_text'] = _replyText;
+    data['created_at'] = _createdAt;
+    data['updated_at'] = _updatedAt;
     return data;
   }
 }

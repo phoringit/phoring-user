@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/title_row_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/controllers/banner_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/widgets/fashion_banner_widget.dart';
@@ -58,25 +59,88 @@ class FashionThemeHomePage extends StatefulWidget {
   State<FashionThemeHomePage> createState() => _FashionThemeHomePageState();
 
   static Future<void> loadData(bool reload) async {
-    await Provider.of<FlashDealController>(Get.context!, listen: false).getFlashDealList(true, false);
-    await Provider.of<BannerController>(Get.context!, listen: false).getBannerList(reload);
-    await Provider.of<CartController>(Get.context!, listen: false).getCartData(Get.context!);
-    await Provider.of<CategoryController>(Get.context!, listen: false).getCategoryList(reload);
-    await Provider.of<ProductController>(Get.context!, listen: false).getHomeCategoryProductList(reload);
-    await Provider.of<ShopController>(Get.context!, listen: false).getTopSellerList(reload, 1,type: "top");
-    await Provider.of<BrandController>(Get.context!, listen: false).getBrandList(reload);
-    await Provider.of<ProductController>(Get.context!, listen: false).getLatestProductList(1, reload: reload);
-    await Provider.of<ProductController>(Get.context!, listen: false).getFeaturedProductList('1', reload: reload);
-    await Provider.of<FeaturedDealController>(Get.context!, listen: false).getFeaturedDealList(reload);
-    await Provider.of<ProductController>(Get.context!, listen: false).getLProductList('1', reload: reload);
-    await Provider.of<ProductController>(Get.context!, listen: false).getRecommendedProduct();
-    await Provider.of<ProductController>(Get.context!, listen: false).getMostDemandedProduct();
-    await Provider.of<ProductController>(Get.context!, listen: false).getMostSearchingProduct(1);
-    await Provider.of<ShopController>(Get.context!, listen: false).getMoreStore();
-    await Provider.of<NotificationController>(Get.context!, listen: false).getNotificationList(1);
+    final flashDealController = Provider.of<FlashDealController>(Get.context!, listen: false);
+    final shopController = Provider.of<ShopController>(Get.context!, listen: false);
+    final categoryController = Provider.of<CategoryController>(Get.context!, listen: false);
+    final bannerController = Provider.of<BannerController>(Get.context!, listen: false);
+    final addressController = Provider.of<AddressController>(Get.context!, listen: false);
+    final productController = Provider.of<ProductController>(Get.context!, listen: false);
+    final brandController = Provider.of<BrandController>(Get.context!, listen: false);
+    final featuredDealController = Provider.of<FeaturedDealController>(Get.context!, listen: false);
+    final notificationController = Provider.of<NotificationController>(Get.context!, listen: false);
+    final cartController = Provider.of<CartController>(Get.context!, listen: false);
+    final profileController = Provider.of<ProfileController>(Get.context!, listen: false);
+    final sellerProductController = Provider.of<SellerProductController>(Get.context!, listen: false);
+
+
+
+    shopController.getAllSellerList(reload, 1, type: "all");
+    ///
+
+    if(flashDealController.flashDealList.isEmpty || reload) {
+      // await flashDealController.getFlashDealList(reload, false);
+    }
+
+
+    bannerController.getBannerList(reload);
+    ///
+
+    cartController.getCartData(Get.context!);
+    ///
+
+
+    categoryController.getCategoryList(reload);
+    ///
+
+
+    productController.getHomeCategoryProductList(reload);
+    ///
+
+    shopController.getTopSellerList(reload, 1, type: "top");
+    ///
+
+    brandController.getBrandList(reload);
+    ///
+
+    productController.getLatestProductList(1, reload: reload);
+    ///
+
+    productController.getFeaturedProductList('1', reload: reload);
+    ///
+
+    featuredDealController.getFeaturedDealList(reload);
+    ///
+
+    productController.getLProductList('1', reload: reload);
+    ///
+
+    productController.getRecommendedProduct();
+    ///
+
+    productController.getMostDemandedProduct();
+    ///
+
+    productController.getMostSearchingProduct(1);
+    ///
+
+    shopController.getMoreStore();
+    ///
+
+
+    if(notificationController.notificationModel == null ||
+        (notificationController.notificationModel != null
+            && notificationController.notificationModel!.notification!.isEmpty)
+        || reload) {
+      notificationController.getNotificationList(1);
+    }
+
     if(Provider.of<AuthController>(Get.context!, listen: false).isLoggedIn()){
-      await Provider.of<ProfileController>(Get.context!, listen: false).getUserInfo(Get.context!);
-      await Provider.of<SellerProductController>(Get.context!, listen: false).getShopAgainFromRecentStore();
+      if(profileController.userInfoModel == null) {
+        await profileController.getUserInfo(Get.context!);
+      }
+
+      sellerProductController.getShopAgainFromRecentStore();
+
     }
   }
 

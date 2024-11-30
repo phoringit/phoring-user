@@ -70,7 +70,6 @@ class ChatRepository implements ChatRepositoryInterface {
   Future<http.StreamedResponse> sendMessage(MessageBody messageBody, String type, List<XFile?> file, List<PlatformFile>? platformFile) async {
     http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse('${AppConstants.baseUrl}${AppConstants.sendMessageUri}$type'));
 
-    print("===Request===>>${request.url}");
     request.headers.addAll(<String,String>{'Authorization': 'Bearer ${Provider.of<AuthController>(Get.context!, listen: false).getUserToken()}'});
     for(int i=0; i<file.length;i++){
       Uint8List list = await file[i]!.readAsBytes();

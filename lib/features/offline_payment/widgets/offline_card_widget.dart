@@ -43,7 +43,7 @@ class OfflineCardWidget extends StatelessWidget {
                           physics: const NeverScrollableScrollPhysics(),
                           itemBuilder: (context, index){
                           return Padding(padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeExtraExtraSmall),
-                            child: Row(children: [
+                            child: Column(children: [
                               Text('${offlinePaymentModel.methodFields?[index].inputName??''} : '.replaceAll("_", " ").capitalize(),
                                 style: textRegular.copyWith(fontSize: Dimensions.fontSizeDefault),),
                               Text((offlinePaymentModel.methodFields?[index].inputData??'').replaceAll('_', " ").capitalize(),

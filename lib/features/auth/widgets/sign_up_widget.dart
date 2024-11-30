@@ -17,7 +17,6 @@ import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakba
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_textfield_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/screens/dashboard_screen.dart';
 import 'package:provider/provider.dart';
-import '../screens/otp_verification_screen.dart';
 
 class SignUpWidget extends StatefulWidget {
   const SignUpWidget({super.key});

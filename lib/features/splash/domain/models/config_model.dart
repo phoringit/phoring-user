@@ -76,6 +76,8 @@ class ConfigModel {
   CustomerVerification? customerVerification;
   int? refundDayLimit;
   int? otpResendTime;
+  bool? hasLocaldb;
+  bool? localMaintenanceMode;
   ConfigModel(
       {this.brandSetting,
         this.digitalProductSetting,
@@ -151,7 +153,9 @@ class ConfigModel {
         this.customerLogin,
         this.customerVerification,
         this.refundDayLimit,
-        this.otpResendTime
+        this.otpResendTime,
+        this.hasLocaldb,
+        this.localMaintenanceMode
       });
 
   ConfigModel.fromJson(Map<String, dynamic> json) {
@@ -264,6 +268,7 @@ class ConfigModel {
     paymentMethodImagePath = json['payment_method_image_path'];
     refEarningStatus = json['ref_earning_status'].toString();
     activeTheme = json['active_theme'];
+    // activeTheme = 'theme_default';
     if (json['popular_tags'] != null) {
       popularTags = <PopularTags>[];
       json['popular_tags'].forEach((v) {
@@ -336,6 +341,8 @@ class ConfigModel {
       refundDayLimit = int.tryParse(json['refund_day_limit'].toString());
     }
     otpResendTime = int.tryParse(json['otp_resend_time'].toString());
+     hasLocaldb = json['has_local_db'];
+    localMaintenanceMode = json['local_m_mode'];
   }
 
 }
@@ -723,17 +730,18 @@ class MaintenanceMode {
         this.maintenanceMessages, this.maintenanceTypeAndDuration});
 
   MaintenanceMode.fromJson(Map<String, dynamic> json) {
-    maintenanceStatus = int.tryParse(json['maintenance_status'].toString());
+   //  maintenanceStatus = int.tryParse(json['maintenance_status'].toString());
+    maintenanceStatus = 0;
     selectedMaintenanceSystem = json['selected_maintenance_system'] != null
-        ? new SelectedMaintenanceSystem.fromJson(
+        ? SelectedMaintenanceSystem.fromJson(
         json['selected_maintenance_system'])
         : null;
     maintenanceMessages = json['maintenance_messages'] != null
-        ? new MaintenanceMessages.fromJson(json['maintenance_messages'])
+        ? MaintenanceMessages.fromJson(json['maintenance_messages'])
         : null;
 
     maintenanceTypeAndDuration = json['maintenance_type_and_duration'] != null
-        ? new MaintenanceTypeAndDuration.fromJson(
+        ? MaintenanceTypeAndDuration.fromJson(
         json['maintenance_type_and_duration'])
         : null;
   }
@@ -866,7 +874,7 @@ class CustomerLogin {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     if (loginOption != null) {
       data['login_option'] = loginOption!.toJson();
     }
@@ -933,7 +941,7 @@ class CustomerVerification {
 
   CustomerVerification.fromJson(Map<String, dynamic> json) {
     status = int.tryParse(json['status'].toString());
-    phone =  int.tryParse(json['phone'].toString());
+    phone = 1;
     email = int.tryParse(json['email'].toString());
     firebase = int.tryParse(json['firebase'].toString());
 

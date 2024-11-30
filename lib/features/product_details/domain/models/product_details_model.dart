@@ -67,6 +67,9 @@ class ProductDetailsModel {
   List<String?>? _authors;
   List<String?>? _publishingHouse;
 
+  List<String?>? restockRequestedList;
+  int? isRestockRequested;
+
   ProductDetailsModel(
       {int? id,
         String? addedBy,
@@ -131,6 +134,9 @@ class ProductDetailsModel {
         ImageFullUrl? previewFileFullUrl,
         List<String?>? authors,
         List<String?>? publishingHouse,
+
+        this.restockRequestedList,
+        this.isRestockRequested
       }) {
     if (id != null) {
       _id = id;
@@ -549,8 +555,15 @@ class ProductDetailsModel {
     }
 
 
-  }
+    if(json['restock_requested_list'] != null) {
+      restockRequestedList = (json['restock_requested_list'] as List<dynamic>?)
+        ?.where((element) => element != null).map((element) => element as String).toList();
+    }else {
+      restockRequestedList = [];
+    }
 
+    isRestockRequested = json['is_restock_requested'];
+  }
 }
 
 class CategoryIds {

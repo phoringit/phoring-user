@@ -238,11 +238,6 @@ class AuthRepository implements AuthRepoInterface{
 
   @override
   Future<ApiResponse> verifyPhone(String phone, String token, String otp) async {
-
-
-    print("===123456====>>${
-        {"phone": phone.trim(), "token": otp}
-    }");
     try {
       Response response = await dioClient!.post(
           AppConstants.verifyPhoneUri, data: {"phone": phone.trim(), "token": otp});
@@ -293,7 +288,6 @@ class AuthRepository implements AuthRepoInterface{
 
   Future<ApiResponse> registerWithOtp(String name, {String? email, required String phone}) async {
 
-   print("==0123==${{"name": name, "email": email, "phone": phone}}===");
     try {
       Response response = await dioClient!.post(
         AppConstants.registerWithOtp,
@@ -362,12 +356,8 @@ class AuthRepository implements AuthRepoInterface{
   @override
   Future<ApiResponse> forgetPassword(String identity,  String type) async {
 
-    print("=====ForgotPasword====>>${"email_or_phone=====>>$identity"   "type" "=====>>$type"}");
-
     try {
       Response response = await dioClient!.post(AppConstants.forgetPasswordUri, data: {"email_or_phone": identity, "type" : type});
-
-      print("=====ForgotPasword====>>${response.data}");
 
       return ApiResponse.withSuccess(response);
     } catch (e) {

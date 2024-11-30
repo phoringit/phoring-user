@@ -365,7 +365,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     ? 1.2
                                     : 1.0),
                           ),
-                          swapCategoryAndBottomBar: false,
+                          // swapCategoryAndBottomBar: false,
                           skinToneConfig: const SkinToneConfig(),
                           categoryViewConfig: const CategoryViewConfig(),
                           bottomActionBarConfig: const BottomActionBarConfig(),

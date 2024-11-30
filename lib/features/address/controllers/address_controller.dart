@@ -109,11 +109,9 @@ class AddressController with ChangeNotifier {
     ApiResponse apiResponse = await addressServiceInterface.add(addressModel);
     _isLoading = false;
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-      print("====>>${apiResponse.response?.data}");
       showCustomSnackBar(apiResponse.response!.data["message"], Get.context!, isError: false);
       getAddressList();
     }
-    print("====>>${apiResponse.response?.data}");
     notifyListeners();
     return apiResponse;
   }
@@ -127,7 +125,6 @@ class AddressController with ChangeNotifier {
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
       Navigator.pop(Get.context!);
       getAddressList();
-      print("====>>${apiResponse.response?.data}");
       showCustomSnackBar(apiResponse.response!.data['message'], Get.context!, isError: false);
     }
 

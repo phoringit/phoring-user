@@ -9,9 +9,9 @@ class BrandRepository implements BrandRepoInterface{
   BrandRepository({required this.dioClient});
 
   @override
-  Future<ApiResponse> getList({int? offset}) async {
+  Future<ApiResponse> getBrandList(int offset) async {
     try {
-      final response = await dioClient!.get(AppConstants.brandUri);
+      final response = await dioClient!.get('${AppConstants.brandUri}&limit=24&offset=$offset');
       return ApiResponse.withSuccess(response);
     } catch (e) {
       return ApiResponse.withError(ApiErrorHandler.getMessage(e));
@@ -51,6 +51,12 @@ class BrandRepository implements BrandRepoInterface{
   @override
   Future update(Map<String, dynamic> body, int id) {
     // TODO: implement update
+    throw UnimplementedError();
+  }
+
+  @override
+  Future getList({int? offset = 1}) {
+    // TODO: implement getList
     throw UnimplementedError();
   }
 }

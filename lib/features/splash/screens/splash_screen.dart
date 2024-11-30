@@ -1,15 +1,13 @@
-import 'dart:async';
 import 'dart:io';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/bouncy_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_details/screens/order_details_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/product_details/screens/product_details_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/update/screen/update_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wallet/screens/wallet_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/network_info.dart';
-import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/push_notification/models/notification_body.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
@@ -59,6 +57,11 @@ class SplashScreenState extends State<SplashScreen> {
     //   firstTime = false;
     // });
 
+    _initializeAsync();
+  }
+
+  Future<void> _initializeAsync() async {
+    await Future.delayed(const Duration(milliseconds: 500));
     _route();
   }
 
@@ -70,8 +73,9 @@ class SplashScreenState extends State<SplashScreen> {
 
   void _route() {
     NetworkInfo.checkConnectivity(context);
-    Provider.of<SplashController>(context, listen: false).initConfig(context).then((bool isSuccess) {
-      if(isSuccess) {
+    Provider.of<SplashController>(context, listen: false).initConfig(
+      context,
+      (ConfigModel? configModel) {
         String? minimumVersion = "0";
         UserAppVersionControl? appVersion = Provider.of<SplashController>(Get.context!, listen: false).configModel?.userAppVersionControl;
         if(Platform.isAndroid) {
@@ -80,22 +84,107 @@ class SplashScreenState extends State<SplashScreen> {
           minimumVersion = appVersion?.forIos?.version ?? '0';
         }
         Provider.of<SplashController>(Get.context!, listen: false).initSharedPrefData();
-        Timer(const Duration(seconds: 1), () {
+        // Timer(const Duration(seconds: 2), () {
           final config = Provider.of<SplashController>(Get.context!, listen: false).configModel;
 
-          if(compareVersions(minimumVersion!, AppConstants.appVersion) == 1) {
+          Future.delayed(const Duration(milliseconds: 0)).then((_) {
+            if(compareVersions(minimumVersion!, AppConstants.appVersion) == 1) {
+              Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (_) => const UpdateScreen()));
+            } else if(
+            config?.maintenanceModeData?.maintenanceStatus == 1 && config?.maintenanceModeData?.selectedMaintenanceSystem?.customerApp == 1
+                && !Provider.of<SplashController>(context, listen: false).isConfigCall) {
+              Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(
+                builder: (_) => const MaintenanceScreen(),
+                settings: const RouteSettings(name: 'MaintenanceScreen'),
+              ));
+            } else if(Provider.of<AuthController>(Get.context!, listen: false).isLoggedIn()) {
+              Provider.of<AuthController>(Get.context!, listen: false).updateToken(Get.context!);
+              if(widget.body != null){
+                if (widget.body!.type == 'order') {
+                  Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>
+                      OrderDetailsScreen(orderId: widget.body!.orderId)));
+                } else if(widget.body!.type == 'notification') {
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>
+                  const NotificationScreen()));
+                } else if(widget.body!.type == 'wallet') {
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => const WalletScreen()));
+                } else  if (widget.body!.type == 'chatting') {
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>
+                      InboxScreen(isBackButtonExist: true, fromNotification: true,  initIndex: widget.body!.messageKey ==  'message_from_delivery_man' ? 0 : 1)));
+                } else if(widget.body!.type == 'product_restock_update') {
+                  Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  ProductDetails(productId: int.parse(widget.body!.productId!), slug: widget.body!.slug, isNotification: true)));
+                } else {
+                  Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  const NotificationScreen(fromNotification: true,)));
+                }
+              }else{
+                Navigator.of(Get.context!).pushReplacement(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => const DashBoardScreen(),
+                    transitionDuration: Duration.zero, // Removes transition duration
+                    reverseTransitionDuration: Duration.zero, // Removes reverse transition
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+                  ),
+                );
+              }
+            }
+
+            else if(Provider.of<SplashController>(Get.context!, listen: false).showIntro()!){
+              Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => OnBoardingScreen(
+                  indicatorColor: ColorResources.grey, selectedIndicatorColor: Theme.of(context).primaryColor)));
+            }
+            else{
+              if(Provider.of<AuthController>(context, listen: false).getGuestToken() != null &&
+                  Provider.of<AuthController>(context, listen: false).getGuestToken() != '1'){
+                Navigator.of(Get.context!).pushReplacement(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => const DashBoardScreen(),
+                    transitionDuration: Duration.zero, // Removes transition duration
+                    reverseTransitionDuration: Duration.zero, // Removes reverse transition
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+                  ),
+                );
+              }else{
+                Provider.of<AuthController>(context, listen: false).getGuestIdUrl();
+
+                Navigator.of(Get.context!).pushReplacement(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => const DashBoardScreen(),
+                    transitionDuration: Duration.zero, // Removes transition duration
+                    reverseTransitionDuration: Duration.zero, // Removes reverse transition
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+                  ),
+                );
+              }
+            }
+          });
+       //  });
+      },
+
+
+      (ConfigModel? configModel) {
+        String? minimumVersion = "0";
+        UserAppVersionControl? appVersion = Provider.of<SplashController>(Get.context!, listen: false).configModel?.userAppVersionControl;
+        if(Platform.isAndroid) {
+          minimumVersion =  appVersion?.forAndroid?.version ?? '0';
+        } else if(Platform.isIOS) {
+          minimumVersion = appVersion?.forIos?.version ?? '0';
+        }
+        Provider.of<SplashController>(Get.context!, listen: false).initSharedPrefData();
+        // Timer(const Duration(seconds: 1), () {
+          final config = Provider.of<SplashController>(Get.context!, listen: false).configModel;
+          if(compareVersions(minimumVersion, AppConstants.appVersion) == 1) {
             Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (_) => const UpdateScreen()));
           } else if(
-            //Provider.of<SplashController>(Get.context!, listen: false).configModel!.maintenanceMode!
             config?.maintenanceModeData?.maintenanceStatus == 1 && config?.maintenanceModeData?.selectedMaintenanceSystem?.customerApp == 1
+            && !config!.localMaintenanceMode!
           ) {
             Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(
               builder: (_) => const MaintenanceScreen(),
               settings: const RouteSettings(name: 'MaintenanceScreen'),
             ));
-          } else if(Provider.of<AuthController>(Get.context!, listen: false).isLoggedIn()){
+          } else if(Provider.of<AuthController>(Get.context!, listen: false).isLoggedIn() && !configModel!.hasLocaldb!) {
             Provider.of<AuthController>(Get.context!, listen: false).updateToken(Get.context!);
-            if(widget.body != null){
+            if(widget.body != null) {
               if (widget.body!.type == 'order') {
                 Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>
                     OrderDetailsScreen(orderId: widget.body!.orderId)));
@@ -106,7 +195,9 @@ class SplashScreenState extends State<SplashScreen> {
                 Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => const WalletScreen()));
               } else  if (widget.body!.type == 'chatting') {
                 Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>
-                InboxScreen(isBackButtonExist: true, fromNotification: true,  initIndex: widget.body!.messageKey ==  'message_from_delivery_man' ? 0 : 1)));
+                    InboxScreen(isBackButtonExist: true, fromNotification: true,  initIndex: widget.body!.messageKey ==  'message_from_delivery_man' ? 0 : 1)));
+              } else if(widget.body!.type == 'product_restock_update') {
+                Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  ProductDetails(productId: int.parse(widget.body!.productId!), slug: widget.body!.slug, isNotification: true)));
               } else {
                 Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  const NotificationScreen(fromNotification: true,)));
               }
@@ -115,20 +206,26 @@ class SplashScreenState extends State<SplashScreen> {
             }
           }
 
-          else if(Provider.of<SplashController>(Get.context!, listen: false).showIntro()!){
+          else if(Provider.of<SplashController>(Get.context!, listen: false).showIntro()! &&  !configModel!.hasLocaldb!){
             Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => OnBoardingScreen(
-              indicatorColor: ColorResources.grey, selectedIndicatorColor: Theme.of(context).primaryColor)));
+                indicatorColor: ColorResources.grey, selectedIndicatorColor: Theme.of(context).primaryColor)));
           }
-          else{
-            if(Provider.of<AuthController>(context, listen: false).getGuestToken() != null &&
-                Provider.of<AuthController>(context, listen: false).getGuestToken() != '1'){
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => const DashBoardScreen()));
+          else if(!configModel!.hasLocaldb! || (configModel.hasLocaldb! && configModel.localMaintenanceMode! && !(config?.maintenanceModeData?.maintenanceStatus == 1 && config?.maintenanceModeData?.selectedMaintenanceSystem?.customerApp == 1))){
+            if(Provider.of<AuthController>(Get.context!, listen: false).getGuestToken() != null &&
+                Provider.of<AuthController>(Get.context!, listen: false).getGuestToken() != '1'){
+              Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => const DashBoardScreen()));
             }else{
-              Provider.of<AuthController>(context, listen: false).getGuestIdUrl();
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const DashBoardScreen()), (route) => false);
+              Provider.of<AuthController>(Get.context!, listen: false).getGuestIdUrl();
+              Navigator.pushAndRemoveUntil(Get.context!, MaterialPageRoute(builder: (_) => const DashBoardScreen()), (route) => false);
             }
           }
-        });
+        // });
+      }
+
+
+    ).then((bool isSuccess) {
+      if(isSuccess) {
+
       }
     });
   }

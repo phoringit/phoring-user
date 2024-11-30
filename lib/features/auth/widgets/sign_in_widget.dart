@@ -19,7 +19,6 @@ import 'package:flutter_sixvalley_ecommerce/features/auth/screens/mobile_verify_
 import 'package:flutter_sixvalley_ecommerce/features/auth/widgets/social_login_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/screens/dashboard_screen.dart';
 import 'package:provider/provider.dart';
-import '../screens/otp_verification_screen.dart';
 
 class SignInWidget extends StatefulWidget {
   const SignInWidget({super.key});

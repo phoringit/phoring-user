@@ -1,9 +1,15 @@
+import 'dart:convert';
+
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/data/local/cache_response.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/domain/models/product_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/domain/services/seller_product_service_interface.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/api_checker.dart';
 import 'package:flutter_sixvalley_ecommerce/features/shop/domain/models/shop_again_from_recent_store_model.dart';
+import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 
 class SellerProductController extends ChangeNotifier {
   final SellerProductServiceInterface? sellerProductServiceInterface;
@@ -27,7 +33,6 @@ class SellerProductController extends ChangeNotifier {
     //   sellerProduct = null;
     // }
 
-    print("=====ProductType==SellerRepo===>>${productType}");
     ApiResponse apiResponse = await sellerProductServiceInterface!.getSellerProductList(
       sellerId, offset.toString(),
       productId, categoryIds : categoryIds,
@@ -129,9 +134,36 @@ class SellerProductController extends ChangeNotifier {
 
   List<ShopAgainFromRecentStoreModel> shopAgainFromRecentStoreList = [];
   Future<void> getShopAgainFromRecentStore() async {
+    var localData =  await database.getCacheResponseById(AppConstants.shopAgainFromRecentStore);
+
+    if(localData != null) {
+      var _shopAgainFromRecentStoreList = jsonDecode(localData.response);
+
+      _shopAgainFromRecentStoreList.forEach((store)=> shopAgainFromRecentStoreList.add(ShopAgainFromRecentStoreModel.fromJson(store)));
+      notifyListeners();
+    }
+
+
     ApiResponse apiResponse = await sellerProductServiceInterface!.getShopAgainFromRecentStoreList();
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
       apiResponse.response?.data.forEach((shopAgain)=> shopAgainFromRecentStoreList.add(ShopAgainFromRecentStoreModel.fromJson(shopAgain)));
+
+      if(localData != null) {
+        await database.updateCacheResponse(AppConstants.shopAgainFromRecentStore, CacheResponseCompanion(
+          endPoint: const Value(AppConstants.shopAgainFromRecentStore),
+          header: Value(jsonEncode(apiResponse.response!.headers.map)),
+          response: Value(jsonEncode(apiResponse.response!.data)),
+        ));
+      } else {
+        await database.insertCacheResponse(
+          CacheResponseCompanion(
+            endPoint: const Value(AppConstants.shopAgainFromRecentStore),
+            header: Value(jsonEncode(apiResponse.response!.headers.map)),
+            response: Value(jsonEncode(apiResponse.response!.data)),
+          ),
+        );
+      }
+
     } else {
       ApiChecker.checkApi( apiResponse);
     }

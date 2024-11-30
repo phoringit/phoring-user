@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -9,7 +8,6 @@ import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/animated_custom_dialog_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/widgets/order_place_dialog_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/screens/dashboard_screen.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class DigitalPaymentScreen extends StatefulWidget {
   final String url;
@@ -25,7 +23,6 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
   double value = 0.0;
   final bool _isLoading = true;
 
-  late WebViewController controllerGlobal;
   PullToRefreshController? pullToRefreshController;
   late MyInAppBrowser browser;
 
@@ -38,18 +35,16 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
 
   void _initData() async {
     browser = MyInAppBrowser(context);
-    if(!Platform.isIOS){
-      await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);
-    }
 
-    var options = InAppBrowserClassOptions(
-        crossPlatform: InAppBrowserOptions(hideUrlBar: true, hideToolbarTop: Platform.isAndroid),
-        inAppWebViewGroupOptions: InAppWebViewGroupOptions(
-            crossPlatform: InAppWebViewOptions(useShouldOverrideUrlLoading: true, useOnLoadResource: true, javaScriptEnabled: true)));
+    final settings = InAppBrowserClassSettings(
+      browserSettings: InAppBrowserSettings(hideUrlBar: false),
+      webViewSettings: InAppWebViewSettings(javaScriptEnabled: true, isInspectable: kDebugMode, useShouldOverrideUrlLoading: false, useOnLoadResource: false),
+    );
 
     await browser.openUrlRequest(
-        urlRequest: URLRequest(url: Uri.parse(selectedUrl ?? '')),
-        options: options);
+      urlRequest: URLRequest(url: WebUri(selectedUrl ?? '')),
+      settings: settings,
+    );
 
   }
 
@@ -57,8 +52,9 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(canPop: false,
-      onPopInvoked: (val) => _exitApp(context),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (val, _) => _exitApp(context),
       child: Scaffold(
         appBar: AppBar(title: const Text(''),backgroundColor: Theme.of(context).cardColor),
         body: Column(crossAxisAlignment: CrossAxisAlignment.center,
@@ -68,20 +64,18 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
     );
   }
 
-  Future<bool> _exitApp(BuildContext context) async {
-    if (await controllerGlobal.canGoBack()) {
-      controllerGlobal.goBack();
-      return Future.value(false);
-    } else {
+  Future<void> _exitApp(BuildContext context) async {
+    Future.delayed(const Duration(milliseconds: 100)).then((_){
       Navigator.of(Get.context!).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const DashBoardScreen()), (route) => false);
+
       showAnimatedDialog(Get.context!, OrderPlaceDialogWidget(
         icon: Icons.clear,
         title: getTranslated('payment_cancelled', Get.context!),
         description: getTranslated('your_payment_cancelled', Get.context!),
         isFailed: true,
       ), dismissible: false, willFlip: true);
-      return Future.value(true);
-    }
+    });
+
   }
 }
 

@@ -97,7 +97,7 @@ class ShippingMethodBottomSheetWidgetState extends State<ShippingMethodBottomShe
                       shippingController.isLoading ? const Center(child: CircularProgressIndicator()) :
                       shippingController.addShippingMethod(context, shipping.id, shipping.duration);
                     })]) :
-                  const Center(child: Text('No method available')) : const Center(child: CircularProgressIndicator());
+                  Center(child: Text('${getTranslated('no_shipping_method_available', context)}')) : const Center(child: CircularProgressIndicator());
                 },
               ),
             ),

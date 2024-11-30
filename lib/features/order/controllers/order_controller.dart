@@ -1,9 +1,15 @@
+import 'dart:convert';
+
+import 'package:drift/drift.dart';
+import 'package:flutter_sixvalley_ecommerce/data/local/cache_response.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order/domain/models/order_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order/domain/services/order_service_interface.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/api_checker.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 
 
 
@@ -18,6 +24,17 @@ class OrderController with ChangeNotifier {
   OrderModel? orderModel;
   OrderModel? deliveredOrderModel;
   Future<void> getOrderList(int offset, String status, {String? type}) async {
+
+    var localData =  await database.getCacheResponseById(AppConstants.orderUri);
+
+    if(type == 'reorder'){
+      if(localData != null) {
+        deliveredOrderModel = OrderModel.fromJson(jsonDecode(localData.response));
+        notifyListeners();
+      }
+    }
+
+
     if(offset == 1){
       orderModel = null;
     }
@@ -27,6 +44,23 @@ class OrderController with ChangeNotifier {
         orderModel = OrderModel.fromJson(apiResponse.response?.data);
         if(type == 'reorder'){
           deliveredOrderModel = OrderModel.fromJson(apiResponse.response?.data);
+
+          if(localData != null) {
+            await database.updateCacheResponse(AppConstants.orderUri, CacheResponseCompanion(
+              endPoint: const Value(AppConstants.orderUri),
+              header: Value(jsonEncode(apiResponse.response!.headers.map)),
+              response: Value(jsonEncode(apiResponse.response!.data)),
+            ));
+          } else {
+            await database.insertCacheResponse(
+              CacheResponseCompanion(
+                endPoint: const Value(AppConstants.orderUri),
+                header: Value(jsonEncode(apiResponse.response!.headers.map)),
+                response: Value(jsonEncode(apiResponse.response!.data)),
+              ),
+            );
+          }
+
         }
       }else {
         orderModel!.orders!.addAll(OrderModel.fromJson(apiResponse.response?.data).orders!);

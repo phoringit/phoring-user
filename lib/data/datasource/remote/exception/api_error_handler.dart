@@ -54,8 +54,12 @@ class ApiErrorHandler {
                     errorDescription = error.response!.data['message'];
                    }
                 case 500:
+                  print("==500==>>${error.response!.data}");
                   errorDescription = 'Internal server error';
                 case 503:
+                  if(error.response!.data['message'] != null){
+                    errorDescription = error.response!.data['message'];
+                  }
                 case 429:
                   errorDescription = error.response!.statusMessage;
                   break;

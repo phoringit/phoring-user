@@ -210,7 +210,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                   }
                                 }
                               } else if(widget.fromPage == FromPage.otpLogin) {
-                                print("===Session=>>${authProvider.verificationID}");
                                 if (config.customerVerification?.firebase == 1) {
                                   authProvider.firebaseOtpLogin(
                                     phoneNumber: widget.userInput ?? '',

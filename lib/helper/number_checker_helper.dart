@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 class NumberCheckerHelper {
 
   static bool isNumber(String number) {
-    print("===555666====>>${number.split('').every((digit) => '+0123456789'.contains(digit))}");
     return number.split('').every((digit) => '+0123456789'.contains(digit));
 
     // if (number.startsWith('+')) {

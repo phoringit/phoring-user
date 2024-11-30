@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/paginated_list_view_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/brand/controllers/brand_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/brand/widgets/brand_shimmer_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/screens/brand_and_category_product_screen.dart';
@@ -10,17 +11,25 @@ import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
 import 'package:provider/provider.dart';
 
-class BrandListWidget extends StatelessWidget {
+class BrandListWidget extends StatefulWidget {
   final bool isHomePage;
   const BrandListWidget({super.key, required this.isHomePage});
+
+  @override
+  State<BrandListWidget> createState() => _BrandListWidgetState();
+}
+
+class _BrandListWidgetState extends State<BrandListWidget> {
+  ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
     return Consumer<BrandController>(
       builder: (context, brandProvider, child) {
 
-        return brandProvider.brandList.isNotEmpty ? isHomePage?
-        SingleChildScrollView(scrollDirection: Axis.horizontal,
+        return brandProvider.brandList.isNotEmpty ? widget.isHomePage?
+        SingleChildScrollView(
+         scrollDirection: Axis.horizontal,
          child: Row(children: brandProvider.brandList.map((brand)=>
          InkWell(splashColor: Colors.transparent, highlightColor: Colors.transparent,
           onTap: () {
@@ -48,42 +57,50 @@ class BrandListWidget extends StatelessWidget {
           ),
         )).toList())) :
 
-        GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              childAspectRatio: (1/1.3),
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 5),
-          padding: EdgeInsets.zero,
-          itemCount:  brandProvider.brandList.length,
-          shrinkWrap: true,
-          physics: const BouncingScrollPhysics(),
-          itemBuilder: (BuildContext context, int index) {
+        SingleChildScrollView(
+          controller: _scrollController,
+          child: PaginatedListView(
+            scrollController: _scrollController,
+            totalSize: brandProvider.brandModel?.totalSize,
+            offset: brandProvider.brandModel?.offset,
+            onPaginate: (int? offset) async {
+              await brandProvider.getBrandList(false, offset: offset!);
+            },
+            itemView: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                childAspectRatio: (1/1.3),
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 5),
+              padding: EdgeInsets.zero,
+              itemCount:  brandProvider.brandList.length,
+              shrinkWrap: true,
+              physics: const BouncingScrollPhysics(),
+              itemBuilder: (BuildContext context, int index) {
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => BrandAndCategoryProductScreen(
+                        isBrand: true,
+                        id: brandProvider.brandList[index].id.toString(),
+                        name: brandProvider.brandList[index].name,
+                        image: brandProvider.brandList[index].imageFullUrl?.path)));
+                  },
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    Expanded(child: ClipRRect(borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
+                      child: Container(decoration: BoxDecoration(color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall)),
+                        child: CustomImageWidget(image:'${brandProvider.brandList[index].imageFullUrl?.path!}'),),)),
 
-            return InkWell(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => BrandAndCategoryProductScreen(
-                    isBrand: true,
-                    id: brandProvider.brandList[index].id.toString(),
-                    name: brandProvider.brandList[index].name,
-                    image: brandProvider.brandList[index].imageFullUrl?.path)));
+                    SizedBox(height: (MediaQuery.of(context).size.width/4) * 0.3,
+                        child: Center(child: Text(brandProvider.brandList[index].name!, maxLines: 1, overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center, style: textRegular.copyWith(fontSize: Dimensions.fontSizeSmall)))),
+                  ],
+                  ),
+                );
               },
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Expanded(child: ClipRRect(borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
-                  child: Container(decoration: BoxDecoration(color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall)),
-                    child: CustomImageWidget(image:'${brandProvider.brandList[index].imageFullUrl?.path!}'),),)),
-
-                SizedBox(height: (MediaQuery.of(context).size.width/4) * 0.3,
-                    child: Center(child: Text(brandProvider.brandList[index].name!, maxLines: 1, overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center, style: textRegular.copyWith(fontSize: Dimensions.fontSizeSmall)))),
-              ],
-              ),
-            );
-
-          },
-        ) : BrandShimmerWidget(isHomePage: isHomePage);
-
+            )
+          ),
+        ) : BrandShimmerWidget(isHomePage: widget.isHomePage);
       },
     );
   }

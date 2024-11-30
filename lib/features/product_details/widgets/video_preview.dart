@@ -93,7 +93,6 @@ class _VideoPreviewState extends State<VideoPreview> {
                 Positioned(top: 0, bottom: 0, left: 0, right: 0,
                     child: IconButton(
                       onPressed: () {
-                        print("RAtio===>${_controller.value.aspectRatio}");
                         setState(() {
                           _controller.value.isPlaying ? _controller.pause() : _controller.play();
                         });

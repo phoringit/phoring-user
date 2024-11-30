@@ -192,10 +192,10 @@ class CartWidget extends StatelessWidget {
                               child: SizedBox(width: 20, height: 20,child: CircularProgressIndicator(
                                 color: Theme.of(context).primaryColor, strokeWidth: 2,)),) :
                             CartQuantityButton(isIncrement: false, index: index,
-                                quantity: cartModel!.quantity,
-                                maxQty: cartModel!.productInfo!.totalCurrentStock,
-                                cartModel: cartModel, minimumOrderQuantity: cartModel!.productInfo!.minimumOrderQty,
-                                digitalProduct: cartModel!.productType == "digital"? true : false)])),
+                              quantity: cartModel!.quantity,
+                              maxQty: cartModel!.productInfo!.totalCurrentStock,
+                              cartModel: cartModel, minimumOrderQuantity: cartModel!.productInfo!.minimumOrderQty,
+                              digitalProduct: cartModel!.productType == "digital"? true : false)])),
                     ),
 
                   ]),

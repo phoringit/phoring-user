@@ -39,8 +39,8 @@ class _OnlySocialLoginWidgetState extends State<OnlySocialLoginWidget> {
       } else if(temporaryToken != null && temporaryToken.isNotEmpty) {
         Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => OtpRegistrationScreen(
           tempToken: temporaryToken,
-          userInput: Provider.of<GoogleSignInController>(Get.context!,listen: false).googleAccount!.email ?? '',
-          userName: Provider.of<GoogleSignInController>(Get.context!,listen: false).googleAccount!.displayName ?? '')), (route) => false);
+          userInput: Provider.of<GoogleSignInController>(Get.context!,listen: false).googleAccount?.email ?? '',
+          userName: Provider.of<GoogleSignInController>(Get.context!,listen: false).googleAccount?.displayName ?? '')), (route) => false);
       } else if (profileModel != null) {
         showModalBottomSheet(context: context, isScrollControlled: true,
             backgroundColor: Theme.of(context).primaryColor.withOpacity(0),

@@ -76,19 +76,23 @@ class TitleRowWidget extends StatelessWidget {
 
 
 
-            Text(title!, style: robotoBold.copyWith(
-              fontSize: isFlash ? Dimensions.fontSizeSmall : Dimensions.fontSizeLarge,
-              color: titleColor ?? (isFlash? Colors.white : Theme.of(context).textTheme.bodyLarge?.color),
-            )),
+            // Expanded(
+              //child:
+
+              Text(title!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: robotoBold.copyWith(
+                fontSize: isFlash ? Dimensions.fontSizeSmall : Dimensions.fontSizeLarge,
+                color: titleColor ?? (isFlash? Colors.white : Theme.of(context).textTheme.bodyLarge?.color),
+              )),
+            // ),
             const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 
             isFlash? Image.asset(Images.flashDeal, scale: 4):const SizedBox(),
 
             Flexible(
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-
-
-
                 eventDuration == null ? const Expanded(child: SizedBox.shrink()) :
 
                 Padding(padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),

@@ -289,4 +289,16 @@ class ProductDetailsController extends ChangeNotifier {
     return '';
   }
 
+
+  void updateProductRestock({String? variantKey}) {
+    if(_productDetailsModel != null){
+      _productDetailsModel?.isRestockRequested = 1;
+      if(variantKey != null && variantKey.isNotEmpty) {
+        _productDetailsModel?.restockRequestedList?.add(variantKey);
+      }
+    }
+    notifyListeners();
+  }
+
+
 }

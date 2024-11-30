@@ -15,7 +15,7 @@ class ProductRepository implements ProductRepositoryInterface{
   Future<ApiResponse> getFilteredProductList(BuildContext context, String offset, ProductType productType, String? title) async {
     late String endUrl;
 
-     if(productType == ProductType.bestSelling){
+     if(productType == ProductType.bestSelling) {
       endUrl = AppConstants.bestSellingProductUri;
       title = getTranslated('best_selling', context);
     }

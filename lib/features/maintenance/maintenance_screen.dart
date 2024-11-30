@@ -22,6 +22,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> with WidgetsBindi
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+
     super.initState();
   }
 
@@ -36,7 +37,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> with WidgetsBindi
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       final SplashController splashController = Provider.of<SplashController>(context, listen: false);
-      splashController.initConfig(context).then((bool isSuccess) {
+      splashController.initConfig(context, null, null).then((bool isSuccess) {
         if(isSuccess){
           final config = splashController.configModel!;
           if(config.maintenanceModeData?.maintenanceStatus == 0) {

@@ -17,7 +17,7 @@ class FeaturedProductWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<ProductController>(builder: (context, productController,_) {
-      return (productController.featuredProductList?.isNotEmpty ?? false)  ? Column(children: [
+      return ((productController.featuredProductList != null && productController.featuredProductList!.isNotEmpty))  ? Column(children: [
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: Dimensions.paddingSizeExtraSmall,

@@ -62,8 +62,9 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
               List<List<String>> extentions = [];
               String? variantKey;
               double? digitalVariantPrice;
-
               String? colorWiseSelectedImage = '';
+              bool variationRestockRequested = false;
+
 
               if(widget.product != null && widget.product!.colorImagesFullUrl != null && widget.product!.colorImagesFullUrl!.isNotEmpty){
                 for(int i=0; i< widget.product!.colorImagesFullUrl!.length; i++){
@@ -90,7 +91,6 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                   variationType = '$variationType-$variation';
                 }
               }else {
-
                 bool isFirst = true;
                 for (var variation in variationList) {
                   if(isFirst) {
@@ -155,6 +155,15 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                 variantKey: variantKey,
                 digitalVariantPrice: digitalVariantPrice
               );
+
+
+              print("---$variationType");
+              if(widget.product?.productType == 'physical' && widget.product?.variation != null
+                  && widget.product!.variation!.isNotEmpty && widget.product?.isRestockRequested == 1) {
+                variationRestockRequested = widget.product!.restockRequestedList!.contains(variationType);
+              } else {
+                variationRestockRequested = false;
+              }
 
 
               return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -386,6 +395,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
 
                 Padding(padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
                   child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+
                     Text(getTranslated('total_price', context)!, style: robotoBold),
                     const SizedBox(width: Dimensions.paddingSizeSmall),
                     CustomDirectionalityWidget(
@@ -427,14 +437,37 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                         style: titilliumRegular.copyWith(color: ColorResources.hintTextColor, fontSize: Dimensions.fontSizeDefault)))])),
                 const SizedBox(height: Dimensions.paddingSizeSmall),
 
-                (stock! == 0 && widget.product!.productType == "physical") ?
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeExtraSmall),
-                child: CustomButton(
-                    textColor: Colors.white,
-                    buttonText: getTranslated('out_of_stock', context)),
-              ) :
+                (stock! == 0 && widget.product!.productType == "physical") ?  Provider.of<AuthController>(context, listen: false).isLoggedIn() ?
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeExtraSmall),
+                    child: CustomButton(
+                      isLoading: Provider.of<CartController>(context).addToCartLoading,
+                      backgroundColor: Colors.white,
+                      textColor: Theme.of(context).primaryColor,
+                      isBorder: true,
+                      borderColor: Theme.of(context).primaryColor,
+                      loadingColor : Theme.of(context).primaryColor,
+                      radius: Dimensions.radiusDefault,
+                      buttonText: (widget.product!.choiceOptions!.isEmpty ? widget.product!.isRestockRequested == 1 : variationRestockRequested) ?
+                      getTranslated('restock_requested', context) : getTranslated('request_restock', context),
+                      onTap: (widget.product!.choiceOptions!.isEmpty ? widget.product!.isRestockRequested == 1 : variationRestockRequested) ? null : () {
+                        Provider.of<CartController>(context, listen: false).restockRequest(
+                          cart, context, widget.product!.choiceOptions!, details.variationIndex, variationType: variationType);
+                      },
+                    ),
+                  ) :
 
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeExtraSmall),
+                    child: CustomButton(
+                      textColor: Colors.white,
+                      buttonText: getTranslated('request_restock', context),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        showCustomSnackBar(getTranslated('to_request_the_restock', Get.context!), Get.context!);
+                      },
+                    ),
+                  ) :
                 Provider.of<CartController>(context).addToCartLoading ?
                     const Center(child: Padding(padding: EdgeInsets.all(8.0),
                       child: CircularProgressIndicator())):
@@ -520,14 +553,17 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
     double tax = 0.0;
     double shippingAmount = (shippingCost + cart.shippingCost!);
 
-    if(cart.taxModel == "exclude"){
+    if(cart.taxModel == "exclude") {
       tax += cart.tax! * cart.quantity!;
     }
-    if(cart.freeDeliveryOrderAmount != null ){
+
+
+
+    if(cart.freeDeliveryOrderAmount != null  ){
       shippingAmount = shippingAmount - cart.freeDeliveryOrderAmount!.shippingCostSaved!;
     }
 
-    Navigator.of(context).push(MaterialPageRoute(
+    Navigator.of(Get.context!).push(MaterialPageRoute(
         builder: (context) => CheckoutScreen(
           cartList: [cart],
           discount: discount,

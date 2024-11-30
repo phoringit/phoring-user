@@ -26,13 +26,14 @@ class PaymentInfoWidget extends StatelessWidget {
                   style: titilliumRegular.copyWith(fontSize: Dimensions.fontSizeSmall))])),
 
 
+            order?.orders?.paymentMethod != null ?
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text(getTranslated('PAYMENT_PLATFORM', context)!,
                   style: titilliumRegular.copyWith(fontSize: Dimensions.fontSizeSmall)),
 
               Text(order!.orders!.paymentMethod!.replaceAll('_', ' ').capitalize(),
                   style: titilliumBold.copyWith(color: Theme.of(context).primaryColor)),
-            ]),
+            ]) : const SizedBox(),
           ]),
     );
   }

@@ -326,7 +326,6 @@ class SearchProductController with ChangeNotifier {
 
   void setProductTypeIndex(int index, bool notify) {
     _productTypeIndex = index;
-    print("====ProductTypeIndex===>>${index}");
     if(notify) {
       notifyListeners();
     }

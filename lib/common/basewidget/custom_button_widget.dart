@@ -13,6 +13,7 @@ class CustomButton extends StatelessWidget {
   final Color? backgroundColor;
   final Color? textColor;
   final Color? borderColor;
+  final Color? loadingColor;
   final double? radius;
   final double? fontSize;
   final String? leftIcon;
@@ -23,7 +24,7 @@ class CustomButton extends StatelessWidget {
   const CustomButton({
     super.key, this.onTap, required this.buttonText, this.isBuy= false,
     this.isBorder = false, this.backgroundColor, this.radius, this.textColor,
-    this.fontSize, this.leftIcon, this.borderColor, this.borderWidth,
+    this.fontSize, this.leftIcon, this.borderColor, this.loadingColor = Colors.white, this.borderWidth,
     this.isLoading = false,
   });
 
@@ -41,16 +42,16 @@ class CustomButton extends StatelessWidget {
         child: isLoading ? Center(child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(
+            SizedBox(
               height: 15, width: 15,
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(loadingColor!),
                 strokeWidth: 2,
               ),
             ),
             const SizedBox(width: Dimensions.paddingSizeSmall),
 
-            Text(getTranslated('loading', context)!, style: textBold.copyWith(color: Colors.white)),
+            Text(getTranslated('loading', context)!, style: textBold.copyWith(color: loadingColor)),
           ],
         )) : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             if(leftIcon != null)

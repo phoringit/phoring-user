@@ -1,25 +1,81 @@
+import 'dart:convert';
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/data/local/cache_response.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/brand/domain/models/brand_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/brand/domain/repositories/brand_repository.dart';
+import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
+
 
 class BrandController extends ChangeNotifier {
   final BrandRepository? brandRepo;
   BrandController({required this.brandRepo});
 
+
+  Brand? _brandModel;
+  Brand? get brandModel => _brandModel;
+
   List<BrandModel> _brandList = [];
   List<BrandModel> get brandList => _brandList;
   final List<BrandModel> _originalBrandList = [];
 
-  Future<void> getBrandList(bool reload) async {
-    if (_brandList.isEmpty || reload) {
-      ApiResponse apiResponse = await brandRepo!.getList();
-        _originalBrandList.clear();
-        apiResponse.response?.data.forEach((brand) => _originalBrandList.add(BrandModel.fromJson(brand)));
-        _brandList.clear();
-        apiResponse.response!.data.forEach((brand) => _brandList.add(BrandModel.fromJson(brand)));
+  Future<void> getBrandList(bool reload, {int offset =1}) async {
+    var localData =  await database.getCacheResponseById(AppConstants.brandUri);
+    //  var localData =  await CacheManager.getLocalData(AppConstants.brandUri);
 
+    if(localData != null && offset == 1) {
+      var brandList = jsonDecode(localData.response);
+
+      _brandModel = Brand.fromJson(brandList);
+      _brandModel?.brands?.forEach((brand) => _originalBrandList.add(brand));
+      _brandList.clear();
+      _brandModel?.brands?.forEach((brand) => _brandList.add(brand));
       notifyListeners();
+    }
+
+    if(reload ){
+      _brandList.clear();
+      _originalBrandList.clear();
+    }
+
+
+
+      ApiResponse apiResponse = await brandRepo!.getBrandList(offset);
+
+
+      if(apiResponse.response?.statusCode == 200) {
+        if(offset ==1  && Brand.fromJson(apiResponse.response!.data).brands != null) {
+          _brandList.clear();
+          _originalBrandList.clear();
+
+          _brandModel = Brand.fromJson(apiResponse.response!.data);
+          apiResponse.response?.data['brands'].forEach((brand) => _originalBrandList.add(BrandModel.fromJson(brand)));
+          apiResponse.response!.data['brands'].forEach((brand) => _brandList.add(BrandModel.fromJson(brand)));
+
+          if(localData != null) {
+            await database.updateCacheResponse(AppConstants.brandUri, CacheResponseCompanion(
+              endPoint: const Value(AppConstants.brandUri),
+              header: Value(jsonEncode(apiResponse.response!.headers.map)),
+              response: Value(jsonEncode(apiResponse.response!.data)),
+            ));
+          } else {
+            await database.insertCacheResponse(
+              CacheResponseCompanion(
+                endPoint: const Value(AppConstants.brandUri),
+                header: Value(jsonEncode(apiResponse.response!.headers.map)),
+                response: Value(jsonEncode(apiResponse.response!.data)),
+              ),
+            );
+          }
+        } else if (Brand.fromJson(apiResponse.response?.data).brands != null &&  Brand.fromJson(apiResponse.response?.data).brands!.isNotEmpty) {
+          _brandModel = Brand.fromJson(apiResponse.response!.data);
+          apiResponse.response?.data['brands'].forEach((brand) => _originalBrandList.add(BrandModel.fromJson(brand)));
+          apiResponse.response!.data['brands'].forEach((brand) => _brandList.add(BrandModel.fromJson(brand)));
+        }
+
+        notifyListeners();
     }
   }
 

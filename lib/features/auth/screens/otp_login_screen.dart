@@ -195,14 +195,11 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                                         }else {
 
                                           String phoneWithCountryCode = countryCode! + _phoneNumberController!.text.trim();
-                                          print("Phone with Country Code : $phoneWithCountryCode");
 
 
                                           if(configModel.customerVerification?.firebase == 1) {
-                                            print("====>>Firebase");
                                             await authProvider.firebaseVerifyPhoneNumber(phoneWithCountryCode, FromPage.otpLogin );
                                           } else {
-                                            print("====>>ManualOtp");
                                             await authProvider.checkPhoneForOtp(phoneWithCountryCode, FromPage.otpLogin);
                                           }
 

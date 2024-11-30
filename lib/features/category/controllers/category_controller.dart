@@ -1,4 +1,8 @@
+import 'dart:convert';
+
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/data/local/cache_response.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/category/domain/models/category_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/category/domain/services/category_service_interface.dart';
@@ -6,6 +10,7 @@ import 'package:flutter_sixvalley_ecommerce/features/product/controllers/seller_
 import 'package:flutter_sixvalley_ecommerce/helper/api_checker.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/features/brand/controllers/brand_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:provider/provider.dart';
 
 class CategoryController extends ChangeNotifier {
@@ -20,17 +25,47 @@ class CategoryController extends ChangeNotifier {
   int? get categorySelectedIndex => _categorySelectedIndex;
 
   Future<void> getCategoryList(bool reload) async {
+
+    var localData =  await database.getCacheResponseById(AppConstants.categoriesUri);
+
+
+    if(localData != null) {
+      _categoryList.clear();
+      var categoryList = jsonDecode(localData.response);
+      categoryList.forEach((category) => _categoryList.add(CategoryModel.fromJson(category)));
+      _categorySelectedIndex = 0;
+      notifyListeners();
+    }
+
     if (_categoryList.isEmpty || reload) {
       ApiResponse apiResponse = await categoryServiceInterface!.getList();
       if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
         _categoryList.clear();
         apiResponse.response!.data.forEach((category) => _categoryList.add(CategoryModel.fromJson(category)));
         _categorySelectedIndex = 0;
+
+        if(localData != null) {
+          await database.updateCacheResponse(AppConstants.categoriesUri, CacheResponseCompanion(
+            endPoint: const Value(AppConstants.categoriesUri),
+            header: Value(jsonEncode(apiResponse.response!.headers.map)),
+            response: Value(jsonEncode(apiResponse.response!.data)),
+          ));
+        } else {
+          await database.insertCacheResponse(
+            CacheResponseCompanion(
+              endPoint: const Value(AppConstants.categoriesUri),
+              header: Value(jsonEncode(apiResponse.response!.headers.map)),
+              response: Value(jsonEncode(apiResponse.response!.data)),
+            ),
+          );
+        }
       } else {
         ApiChecker.checkApi( apiResponse);
       }
       notifyListeners();
     }
+
+
   }
 
   void emptyCategory(){

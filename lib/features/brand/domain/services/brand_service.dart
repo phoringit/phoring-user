@@ -10,6 +10,13 @@ class BrandService implements BrandServiceInterface{
     return brandRepoInterface.getList();
   }
 
+
+  @override
+  Future getBrandList(int offset) {
+    return brandRepoInterface.getBrandList(offset);
+  }
+
+
   @override
   Future getSellerWiseBrandList(int sellerId) {
     return brandRepoInterface.getSellerWiseBrandList(sellerId);

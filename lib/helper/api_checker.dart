@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/error_response.dart';
-import 'package:flutter_sixvalley_ecommerce/localization/app_localization.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
@@ -17,6 +16,8 @@ class ApiChecker {
       Provider.of<AuthController>(Get.context!,listen: false).clearSharedData();
     }else if(apiResponse.response?.statusCode == 500){
       showCustomSnackBar(getTranslated('internal_server_error', Get.context!), Get.context!);
+    }else if(apiResponse.response?.statusCode == 503){
+      showCustomSnackBar(apiResponse.response?.data['message'] , Get.context!);
     }else {
       log("==ff=>${apiResponse.error}");
       String? errorMessage = apiResponse.error.toString();

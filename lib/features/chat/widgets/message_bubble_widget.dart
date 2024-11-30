@@ -228,7 +228,7 @@ class MessageBubbleWidget extends StatelessWidget {
                                   "${directory.path}/${files[index].key}", ""
                                   "${files[index].key}"
                               );
-                            }else if(status.isDenied){
+                            }else if(status.isDenied || status.isPermanentlyDenied){
                               await openAppSettings();
                             }
                           },

@@ -1,5 +1,37 @@
 import 'package:flutter_sixvalley_ecommerce/data/model/image_full_url.dart';
 
+
+class Brand {
+  int? totalSize;
+  int? limit;
+  int? offset;
+  List<BrandModel>? brands;
+
+  Brand({this.totalSize, this.limit, this.offset, this.brands});
+
+  Brand.fromJson(Map<String, dynamic> json) {
+    totalSize = json['total_size'];
+    limit = json['limit'];
+    offset = json['offset'];
+    if (json['brands'] != null) {
+      brands = <BrandModel>[];
+      json['brands'].forEach((v) {
+        brands!.add(BrandModel.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['total_size'] = totalSize;
+    data['limit'] = limit;
+    data['offset'] = offset;
+    return data;
+  }
+}
+
+
+
 class BrandModel {
   int? _id;
   String? _name;

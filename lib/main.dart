@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_sixvalley_ecommerce/data/local/cache_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/facebook_login_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/google_login_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/controllers/banner_controller.dart';
@@ -25,6 +26,7 @@ import 'package:flutter_sixvalley_ecommerce/features/product_details/controllers
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/refund/controllers/refund_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/reorder/controllers/re_order_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/restock/controllers/restock_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/review/controllers/review_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/shipping/controllers/shipping_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
@@ -56,24 +58,26 @@ import 'localization/app_localization.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+final database = AppDatabase();
+
 Future<void> main() async {
   HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
 
 
 if(Firebase.apps.isEmpty) {
-  if(Platform.isAndroid){
+  if(Platform.isAndroid) {
     await Firebase.initializeApp(options: const FirebaseOptions(
-        apiKey: "AIzaSyCXF9AXxyIO7d6G6OgD7uUxyP_6Wx6IgCM",
-        projectId: "phoringsmsbd",
-        messagingSenderId: "152950504609",
-        appId: "1:152950504609:android:2e8aa80428bdbdad6e84e0"
+      apiKey: "current_key here",
+      projectId: "project_id here",
+      messagingSenderId: "project_number here",
+      appId: "mobilesdk_app_id here"
     ));
   }else{
     await Firebase.initializeApp();
   }
 }
-  await FlutterDownloader.initialize(debug: true , ignoreSsl: true);
+  await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
   await di.init();
 
   flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
@@ -89,8 +93,8 @@ if(Firebase.apps.isEmpty) {
   }catch(_) {}
 
 
-  await NotificationHelper.initialize(flutterLocalNotificationsPlugin);
-  FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
+  // await NotificationHelper.initialize(flutterLocalNotificationsPlugin);
+  // FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
 
   runApp(MultiProvider(providers: [
       ChangeNotifierProvider(create: (context) => di.sl<CategoryController>()),
@@ -130,6 +134,7 @@ if(Firebase.apps.isEmpty) {
       ChangeNotifierProvider(create: (context) => di.sl<ReOrderController>()),
       ChangeNotifierProvider(create: (context) => di.sl<ReviewController>()),
       ChangeNotifierProvider(create: (context) => di.sl<SellerProductController>()),
+      ChangeNotifierProvider(create: (context) => di.sl<RestockController>()),
     ],
     child: MyApp(body: body),
   ));

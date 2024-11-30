@@ -115,14 +115,15 @@ class _BottomCartWidgetState extends State<BottomCartWidget> {
         const SizedBox(width: 50),
 
         Expanded(child: InkWell(onTap: () {
-            if(vacationIsOn || temporaryClose ){
+            if(vacationIsOn || temporaryClose ) {
               showCustomSnackBar(getTranslated('this_shop_is_close_now', context), context, isToaster: true);
             }else{
               showModalBottomSheet(context: context, isScrollControlled: true,
-                  backgroundColor: Theme.of(context).primaryColor.withOpacity(0),
-                  builder: (con) => CartBottomSheetWidget(product: widget.product, callback: (){
-                    showCustomSnackBar(getTranslated('added_to_cart', context), context, isError: false);
-                  },));
+                backgroundColor: Theme.of(context).primaryColor.withOpacity(0),
+                builder: (con) => CartBottomSheetWidget(product: widget.product, callback: (){
+                  showCustomSnackBar(getTranslated('added_to_cart', context), context, isError: false);
+                },)
+              );
             }},
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall),

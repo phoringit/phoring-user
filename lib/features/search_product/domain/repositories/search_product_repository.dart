@@ -29,7 +29,6 @@ class SearchProductRepository implements SearchProductRepositoryInterface{
       'product_type' : productType ?? 'all',
     };
 
-    print('===SearchData===>>${data}');
     try {
       log("===limit==>" );
       final response = await dioClient!.post(AppConstants.searchUri,

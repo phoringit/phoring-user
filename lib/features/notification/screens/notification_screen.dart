@@ -25,7 +25,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     if(widget.fromNotification){
-      Provider.of<SplashController>(context, listen: false).initConfig(context).then((value){
+      Provider.of<SplashController>(context, listen: false).initConfig(context, null, null).then((value){
         Provider.of<NotificationController>(context, listen: false).getNotificationList(1);
       });
     }

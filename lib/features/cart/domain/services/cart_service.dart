@@ -102,6 +102,12 @@ class CartService implements CartServiceInterface{
 
 
   @override
+  Future restockRequest(CartModelBody cart, List<ChoiceOptions> choiceOptions, List<int>? variationIndexes, int buyNow, int? shippingMethodExist, int? shippingMethodId) async {
+    return await cartRepositoryInterface.restockRequest(cart, choiceOptions, variationIndexes, buyNow, shippingMethodExist, shippingMethodId);
+  }
+
+
+  @override
   Future updateQuantity(int? key, int quantity) async {
     return await cartRepositoryInterface.updateQuantity(key, quantity);
   }

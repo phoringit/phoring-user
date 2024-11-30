@@ -2,7 +2,7 @@ name: flutter_sixvalley_ecommerce
 description: A new Flutter setup application for starting a project.
 
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+2
 environment:
   sdk: '>=3.2.1 <4.0.0'
 
@@ -46,7 +46,7 @@ dependencies:
   fluttertoast: ^8.0.9
   permission_handler: ^11.1.0
   flutter_downloader: ^1.11.7
-  flutter_inappwebview: ^5.8.0
+  flutter_inappwebview: ^6.0.0
   path: ^1.8.3
   cached_network_image: ^3.3.1
   http_parser: ^4.0.2
@@ -59,7 +59,7 @@ dependencies:
   just_the_tooltip: ^0.0.12
   substring_highlight: ^1.0.33
   card_swiper: ^3.0.1
-  emoji_picker_flutter: ^2.2.0
+  emoji_picker_flutter: ^3.1.0
   #just_audio: ^0.9.36
   file_picker: ^8.0.0+1
   carousel_slider: 5.0.0
@@ -74,11 +74,17 @@ dependencies:
   open_file_manager: ^1.0.2
   audioplayers: ^6.0.0
   syncfusion_flutter_pdfviewer: ^26.2.8
-  firebase_auth: ^5.1.4
+  firebase_auth: ^5.3.1
+  flutter_inappwebview_ios: ^1.1.2
+  drift: ^2.21.0
+  drift_flutter: ^0.1.0
 
 
 dev_dependencies:
   flutter_lints: ^3.0.1
+  drift_dev: ^2.21.0
+  build_runner: ^2.4.13
+
   flutter_test:
     sdk: flutter
 

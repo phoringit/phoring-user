@@ -21,8 +21,6 @@ class CallAndChatWidget extends StatelessWidget {
     String? phone = isSeller? orderProvider!.orderDetails![0].seller!.phone : orderModel!.deliveryMan!.phone;
     String? name = isSeller? orderProvider!.orderDetails![0].seller!.shop!.name : '${orderModel!.deliveryMan!.fName!} ${orderModel!.deliveryMan!.lName!}';
     int? id =  isSeller ? orderProvider!.orderDetails![0].seller!.id : orderModel!.deliveryMan!.id;
-    print("====DMid===>>${orderModel!.deliveryMan!.id}");
-    print("====DMid==2=>>${id}");
 
     return Row(children: [
       InkWell(onTap: ()=> _launchUrl("tel:$phone"),

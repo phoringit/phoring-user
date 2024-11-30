@@ -95,7 +95,6 @@ class AuthController with ChangeNotifier {
   }
 
   Future<void> socialLogin(SocialLoginModel socialLogin, Function callback) async {
-    print("===CallSocialLogin====>>");
     _isLoading = true;
     notifyListeners();
     ApiResponse apiResponse = await authServiceInterface.socialLogin(socialLogin.toJson());
@@ -126,9 +125,6 @@ class AuthController with ChangeNotifier {
         temporaryToken = null;
       }
 
-      print("====ApiResponse===>>${apiResponse.response?.data}");
-      print("====SocialTempToken=====>>$temporaryToken");
-      print("====Token=====>>$token");
 
 
       if(token != null){
@@ -154,7 +150,6 @@ class AuthController with ChangeNotifier {
       }
 
       if(temporaryToken != null && temporaryToken.isNotEmpty) {
-        print("CallBackCall==Controller");
         callback(true, null, temporaryToken, null, message, socialLogin.medium, null);
       }
 
@@ -287,6 +282,11 @@ class AuthController with ChangeNotifier {
         userInputData = email;
       }
 
+      if(!isPhoneVerified && !isMailVerified && config.customerVerification?.phone == 1 && config.customerVerification?.email == 0 && phone != null) {
+        Type = 'phone';
+        userInputData = phone;
+      }
+
 
       if(token != null && token.isNotEmpty) {
         authServiceInterface.saveUserToken(token);
@@ -343,12 +343,10 @@ class AuthController with ChangeNotifier {
   Future<void> sendVerificationCode(ConfigModel config, SignUpModel signUpModel, {String? type, FromPage? fromPage}) async {
     _resendButtonLoading = true;
 
-    print("===Type====>>${type}");
-    print("===Type====>>${signUpModel.phone}");
-
     notifyListeners();
     if(config.customerVerification!.status == 1){
       if(type == 'email' && config.customerVerification?.email == 1){
+        print("===Type==T==>>${type}");
         await checkEmail(signUpModel.email!, fromPage);
       }else if(type == 'phone' && config.customerVerification?.firebase == 1){
         await firebaseVerifyPhoneNumber(signUpModel.phone!, fromPage!);
@@ -396,7 +394,6 @@ class AuthController with ChangeNotifier {
   Future<void> firebaseVerifyPhoneNumber(String phoneNumber, FromPage fromPage, {bool isForgetPassword = false}) async {
     _isPhoneNumberVerificationButtonLoading = true;
     _resendButtonLoading = true;
-    print("==11=phone=>${phoneNumber}");
     notifyListeners();
 
     String? vID;
@@ -522,7 +519,7 @@ class AuthController with ChangeNotifier {
     _isPhoneNumberVerificationButtonLoading = true;
     _verificationMsg = '';
     notifyListeners();
-    ApiResponse apiResponse = await authServiceInterface!.verifyEmail(email, _verificationCode, '');
+    ApiResponse apiResponse = await authServiceInterface.verifyEmail(email, _verificationCode, '');
 
     notifyListeners();
     ResponseModel responseModel;
@@ -1001,8 +998,6 @@ class AuthController with ChangeNotifier {
       } else{
         responseModel = ResponseModel('', true);
       }
-
-
     } else {
       _loginErrorMessage = ApiChecker.getError(apiResponse).errors![0].message;
       showCustomSnackBar(_loginErrorMessage, Get.context!);

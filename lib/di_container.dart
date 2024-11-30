@@ -120,6 +120,11 @@ import 'package:flutter_sixvalley_ecommerce/features/reorder/domain/repositories
 import 'package:flutter_sixvalley_ecommerce/features/reorder/domain/repositories/re_order_repository_interface.dart';
 import 'package:flutter_sixvalley_ecommerce/features/reorder/domain/services/re_order_service.dart';
 import 'package:flutter_sixvalley_ecommerce/features/reorder/domain/services/re_order_service_interface.dart';
+import 'package:flutter_sixvalley_ecommerce/features/restock/controllers/restock_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/restock/domain/repositories/restock_repository.dart';
+import 'package:flutter_sixvalley_ecommerce/features/restock/domain/repositories/restock_repository_interface.dart';
+import 'package:flutter_sixvalley_ecommerce/features/restock/domain/services/restock_service.dart';
+import 'package:flutter_sixvalley_ecommerce/features/restock/domain/services/restock_service_interface.dart';
 import 'package:flutter_sixvalley_ecommerce/features/review/controllers/review_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/review/domain/repositories/review_repository.dart';
 import 'package:flutter_sixvalley_ecommerce/features/review/domain/repositories/review_repository_interface.dart';
@@ -221,6 +226,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => OrderDetailsRepository(dioClient: sl()));
   sl.registerLazySingleton(() => RefundRepository(dioClient: sl()));
   sl.registerLazySingleton(() => ReOrderRepository(dioClient: sl()));
+  sl.registerLazySingleton(() => RestockRepository(dioClient: sl()));
 
 
   // Provider
@@ -261,6 +267,7 @@ Future<void> init() async {
   sl.registerFactory(() => OrderDetailsController(orderDetailsServiceInterface: sl()));
   sl.registerFactory(() => RefundController(refundServiceInterface: sl()));
   sl.registerFactory(() => ReOrderController(reOrderServiceInterface: sl()));
+  sl.registerFactory(() => RestockController(restockServiceInterface: sl()));
 
   //interface
   AddressRepoInterface addressRepoInterface = AddressRepository(dioClient: sl());
@@ -436,6 +443,12 @@ Future<void> init() async {
   sl.registerLazySingleton(() => searchProductServiceInterface);
 
 
+  RestockRepositoryInterface restockRepositoryInterface = RestockRepository(dioClient: sl());
+  sl.registerLazySingleton(() => restockRepositoryInterface);
+  RestockServiceInterface restockServiceInterface = RestockService(restockRepositoryInterface: sl());
+  sl.registerLazySingleton(() => restockServiceInterface);
+
+
 
   //services
   sl.registerLazySingleton(() => AddressService(addressRepoInterface : sl()));
@@ -471,4 +484,5 @@ Future<void> init() async {
   sl.registerLazySingleton(() => WishListService(wishListRepositoryInterface : sl()));
   sl.registerLazySingleton(() => WalletService(walletRepositoryInterface : sl()));
   sl.registerLazySingleton(() => SearchProductService(searchProductRepositoryInterface : sl()));
+  sl.registerLazySingleton(() => RestockService(restockRepositoryInterface : sl()));
 }

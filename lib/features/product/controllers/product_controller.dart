@@ -1,4 +1,8 @@
+import 'dart:convert';
+
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/data/local/cache_response.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/category/domain/models/find_what_you_need.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/domain/models/home_category_product_model.dart';
@@ -9,6 +13,7 @@ import 'package:flutter_sixvalley_ecommerce/helper/api_checker.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/enums/product_type.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 
 class ProductController extends ChangeNotifier {
   final ProductServiceInterface? productServiceInterface;
@@ -76,26 +81,82 @@ class ProductController extends ChangeNotifier {
     if(reload){
       notifyListeners();
     }
-
   }
 
 
   Future<void> getLatestProductList(int offset, {bool reload = false}) async {
+
+    String ? _endUrl;
+
+    if(_productType == ProductType.bestSelling) {
+      _endUrl = AppConstants.bestSellingProductUri;
+    }
+    else if(_productType == ProductType.newArrival){
+      _endUrl = AppConstants.newArrivalProductUri;
+    }
+    else if(_productType == ProductType.topProduct){
+      _endUrl = AppConstants.topProductUri;
+    }else if(_productType == ProductType.discountedProduct){
+      _endUrl = AppConstants.discountedProductUri;
+    }
+
+
+
+    var localData =  await database.getCacheResponseById(_endUrl ?? '');
+
+
+    if(localData != null && offset ==1 && ProductModel.fromJson(jsonDecode(localData.response)).products != null) {
+      _latestProductList = [];
+      _latestProductList!.addAll(ProductModel.fromJson(jsonDecode(localData.response)).products!);
+      _latestPageSize = ProductModel.fromJson(jsonDecode(localData.response)).totalSize;
+      _filterFirstLoading = false;
+      // _filterIsLoading = false;
+      print("===LetestProductLocalUpdate===>>${_latestProductList}");
+      notifyListeners();
+    }
+
+
     if(reload || offset == 1) {
       _offsetList = [];
-      _latestProductList = null;
+      if(localData == null) {
+        _latestProductList = null;
+      }
     }
+
     _lOffset = offset;
     if(!_offsetList.contains(offset)) {
       _offsetList.add(offset);
       ApiResponse apiResponse = await productServiceInterface!.getFilteredProductList(Get.context!, offset.toString(), _productType, title);
+
+      print("===ApiResponse===>>${apiResponse.response?.data}");
+
       if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-        if(offset==1){
+        if(offset==1) {
           _latestProductList = [];
         }
           if(ProductModel.fromJson(apiResponse.response!.data).products != null){
             _latestProductList!.addAll(ProductModel.fromJson(apiResponse.response!.data).products!);
             _latestPageSize = ProductModel.fromJson(apiResponse.response!.data).totalSize;
+
+            try{
+              if(localData != null && offset ==1 ) {
+                await database.updateCacheResponse(_endUrl ?? '', CacheResponseCompanion(
+                  endPoint: Value(_endUrl ?? ''),
+                  header: Value(jsonEncode(apiResponse.response!.headers.map)),
+                  response: Value(jsonEncode(apiResponse.response!.data)),
+                ));
+              } else {
+                await database.insertCacheResponse(
+                  CacheResponseCompanion(
+                    endPoint: Value(_endUrl ?? ''),
+                    header: Value(jsonEncode(apiResponse.response!.headers.map)),
+                    response: Value(jsonEncode(apiResponse.response!.data)),
+                  ),
+                );
+              }
+            } catch(e) {
+              print("===1234==>>${e}");
+            }
           }
 
           _filterFirstLoading = false;
@@ -109,6 +170,7 @@ class ProductController extends ChangeNotifier {
         }
         ApiChecker.checkApi( apiResponse);
       }
+
       notifyListeners();
     }else {
       if(_filterIsLoading) {
@@ -123,6 +185,17 @@ class ProductController extends ChangeNotifier {
 
   //latest product
   Future<void> getLProductList(String offset, {bool reload = false}) async {
+    var localData =  await database.getCacheResponseById(AppConstants.latestProductUri);
+
+    if(localData != null) {
+      _lProductList = [];
+      _lProductList!.addAll(ProductModel.fromJson(jsonDecode(localData.response)).products!);
+      _lPageSize = ProductModel.fromJson(jsonDecode(localData.response)).totalSize;
+
+      notifyListeners();
+    }
+
+
     if(reload) {
       _lOffsetList = [];
       _lProductList = [];
@@ -136,9 +209,28 @@ class ProductController extends ChangeNotifier {
         _lPageSize = ProductModel.fromJson(apiResponse.response!.data).totalSize;
         _firstLoading = false;
         _isLoading = false;
+
+
+        if(localData != null) {
+          await database.updateCacheResponse(AppConstants.latestProductUri, CacheResponseCompanion(
+            endPoint: const Value(AppConstants.latestProductUri),
+            header: Value(jsonEncode(apiResponse.response!.headers.map)),
+            response: Value(jsonEncode(apiResponse.response!.data)),
+          ));
+        } else {
+          await database.insertCacheResponse(
+            CacheResponseCompanion(
+              endPoint: const Value(AppConstants.latestProductUri),
+              header: Value(jsonEncode(apiResponse.response!.headers.map)),
+              response: Value(jsonEncode(apiResponse.response!.data)),
+            ),
+          );
+        }
       } else {
         ApiChecker.checkApi( apiResponse);
       }
+
+
       notifyListeners();
     }else {
       if(_isLoading) {
@@ -259,6 +351,21 @@ int selectedProductTypeIndex = 0;
 
 
   Future<void> getFeaturedProductList(String offset, {bool reload = false}) async {
+
+    var localData =  await database.getCacheResponseById(AppConstants.featuredProductUri);
+
+
+    if(localData != null) {
+      _featuredOffsetList = [];
+      _featuredProductList = [];
+
+      _featuredProductList?.addAll(ProductModel.fromJson(jsonDecode(localData.response)).products!);
+      _featuredPageSize = ProductModel.fromJson(jsonDecode(localData.response)).totalSize;
+
+      notifyListeners();
+    }
+
+
     if(reload) {
       _featuredOffsetList = [];
       _featuredProductList = [];
@@ -273,12 +380,29 @@ int selectedProductTypeIndex = 0;
           if(apiResponse.response!.data['products'] != null) {
             _featuredProductList?.addAll(ProductModel.fromJson(apiResponse.response!.data).products!);
             _featuredPageSize = ProductModel.fromJson(apiResponse.response!.data).totalSize;
+            if(localData != null) {
+              await database.updateCacheResponse(AppConstants.featuredProductUri, CacheResponseCompanion(
+                endPoint: const Value(AppConstants.featuredProductUri),
+                header: Value(jsonEncode(apiResponse.response!.headers.map)),
+                response: Value(jsonEncode(apiResponse.response!.data)),
+              ));
+            } else {
+              await database.insertCacheResponse(
+                CacheResponseCompanion(
+                  endPoint: const Value(AppConstants.featuredProductUri),
+                  header: Value(jsonEncode(apiResponse.response!.headers.map)),
+                  response: Value(jsonEncode(apiResponse.response!.data)),
+                ),
+              );
+            }
           }
           _firstFeaturedLoading = false;
         } else {
           _featuredPageSize = ProductModel.fromJson(apiResponse.response!.data).totalSize;
           _featuredProductList?.addAll(ProductModel.fromJson(apiResponse.response!.data).products!);
         }
+
+
         _isFeaturedLoading = false;
         _filterIsLoading = false;
       } else {
@@ -297,9 +421,40 @@ int selectedProductTypeIndex = 0;
 
   bool recommendedProductLoading = false;
   Future<void> getRecommendedProduct() async {
+
+    var localData =  await database.getCacheResponseById(AppConstants.dealOfTheDay);
+
+    print("====Local=====>>${localData?.response}");
+
+    if(localData != null) {
+      _recommendedProduct = Product.fromJson(jsonDecode(localData.response));
+
+      print("===UnitPrice====>>${_recommendedProduct?.unitPrice}");
+      notifyListeners();
+    }
+
+
     ApiResponse apiResponse = await productServiceInterface!.getRecommendedProduct();
       if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
         _recommendedProduct = Product.fromJson(apiResponse.response!.data);
+
+        print("===UnitPrice====>>${_recommendedProduct?.unitPrice}");
+
+        if(localData != null) {
+          await database.updateCacheResponse(AppConstants.dealOfTheDay, CacheResponseCompanion(
+            endPoint: const Value(AppConstants.dealOfTheDay),
+            header: Value(jsonEncode(apiResponse.response!.headers.map)),
+            response: Value(jsonEncode(apiResponse.response!.data)),
+          ));
+        } else {
+          await database.insertCacheResponse(
+            CacheResponseCompanion(
+              endPoint: const Value(AppConstants.dealOfTheDay),
+              header: Value(jsonEncode(apiResponse.response!.headers.map)),
+              response: Value(jsonEncode(apiResponse.response!.data)),
+            ),
+          );
+        }
       }
       notifyListeners();
   }
@@ -309,6 +464,14 @@ int selectedProductTypeIndex = 0;
   List<HomeCategoryProduct> get homeCategoryProductList => _homeCategoryProductList;
 
   Future<void> getHomeCategoryProductList(bool reload) async {
+    var localData =  await database.getCacheResponseById(AppConstants.homeCategoryProductUri);
+
+    if(localData != null) {
+      var homeCategoryProductList = jsonDecode(localData.response);
+      homeCategoryProductList.forEach((homeCategory) => _homeCategoryProductList.add(HomeCategoryProduct.fromJson(homeCategory)));
+      notifyListeners();
+    }
+
     if (_homeCategoryProductList.isEmpty || reload) {
       ApiResponse apiResponse = await productServiceInterface!.getHomeCategoryProductList();
       if (apiResponse.response != null  && apiResponse.response!.statusCode == 200) {
@@ -317,6 +480,23 @@ int selectedProductTypeIndex = 0;
           apiResponse.response!.data.forEach((homeCategoryProduct) =>
               _homeCategoryProductList.add(HomeCategoryProduct.fromJson(homeCategoryProduct)));
         }
+
+        if(localData != null) {
+          await database.updateCacheResponse(AppConstants.homeCategoryProductUri, CacheResponseCompanion(
+            endPoint: const Value(AppConstants.homeCategoryProductUri),
+            header: Value(jsonEncode(apiResponse.response!.headers.map)),
+            response: Value(jsonEncode(apiResponse.response!.data)),
+          ));
+        } else {
+          await database.insertCacheResponse(
+            CacheResponseCompanion(
+              endPoint: const Value(AppConstants.homeCategoryProductUri),
+              header: Value(jsonEncode(apiResponse.response!.headers.map)),
+              response: Value(jsonEncode(apiResponse.response!.data)),
+            ),
+          );
+        }
+
       } else {
         ApiChecker.checkApi( apiResponse);
       }
@@ -326,10 +506,35 @@ int selectedProductTypeIndex = 0;
 
   MostDemandedProductModel? mostDemandedProductModel;
   Future<void> getMostDemandedProduct() async {
+
+    var localData =  await database.getCacheResponseById(AppConstants.mostDemandedProduct);
+
+    if(localData != null) {
+      mostDemandedProductModel = MostDemandedProductModel.fromJson(jsonDecode(localData.response));
+      notifyListeners();
+    }
+
     ApiResponse apiResponse = await productServiceInterface!.getMostDemandedProduct();
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
       if(apiResponse.response?.data != null && apiResponse.response?.data.isNotEmpty && apiResponse.response?.data != '[]'){
         mostDemandedProductModel = MostDemandedProductModel.fromJson(apiResponse.response!.data);
+
+        if(localData != null) {
+          await database.updateCacheResponse(AppConstants.mostDemandedProduct, CacheResponseCompanion(
+            endPoint: const Value(AppConstants.mostDemandedProduct),
+            header: Value(jsonEncode(apiResponse.response!.headers.map)),
+            response: Value(jsonEncode(apiResponse.response!.data)),
+          ));
+        } else {
+          await database.insertCacheResponse(
+            CacheResponseCompanion(
+              endPoint: const Value(AppConstants.mostDemandedProduct),
+              header: Value(jsonEncode(apiResponse.response!.headers.map)),
+              response: Value(jsonEncode(apiResponse.response!.data)),
+            ),
+          );
+        }
+
       }
 
     } else {
@@ -342,9 +547,34 @@ int selectedProductTypeIndex = 0;
 
   FindWhatYouNeedModel? findWhatYouNeedModel;
   Future<void> findWhatYouNeed() async {
+    var localData =  await database.getCacheResponseById(AppConstants.findWhatYouNeed);
+
+    if(localData != null) {
+      findWhatYouNeedModel = FindWhatYouNeedModel.fromJson(jsonDecode(localData.response));
+      notifyListeners();
+    }
+
+
     ApiResponse apiResponse = await productServiceInterface!.getFindWhatYouNeed();
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
       findWhatYouNeedModel = FindWhatYouNeedModel.fromJson(apiResponse.response?.data);
+
+      if(localData != null) {
+        await database.updateCacheResponse(AppConstants.findWhatYouNeed, CacheResponseCompanion(
+          endPoint: const Value(AppConstants.findWhatYouNeed),
+          header: Value(jsonEncode(apiResponse.response!.headers.map)),
+          response: Value(jsonEncode(apiResponse.response!.data)),
+        ));
+      } else {
+        await database.insertCacheResponse(
+          CacheResponseCompanion(
+            endPoint: const Value(AppConstants.findWhatYouNeed),
+            header: Value(jsonEncode(apiResponse.response!.headers.map)),
+            response: Value(jsonEncode(apiResponse.response!.data)),
+          ),
+        );
+      }
+
     } else {
       ApiChecker.checkApi( apiResponse);
     }
@@ -354,21 +584,74 @@ int selectedProductTypeIndex = 0;
 
   List<Product>? justForYouProduct;
   Future<void> getJustForYouProduct() async {
+    var localData =  await database.getCacheResponseById(AppConstants.justForYou);
+
+    if(localData != null) {
+      var _justForYouProduct = jsonDecode(localData.response);
+
+      _justForYouProduct.forEach((justForYou)=> justForYouProduct?.add(Product.fromJson(justForYou)));
+      notifyListeners();
+    }
+
     justForYouProduct = [];
     ApiResponse apiResponse = await productServiceInterface!.getJustForYouProductList();
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
     apiResponse.response?.data.forEach((justForYou)=> justForYouProduct?.add(Product.fromJson(justForYou)));
+
+    if(localData != null) {
+      await database.updateCacheResponse(AppConstants.justForYou, CacheResponseCompanion(
+        endPoint: const Value(AppConstants.justForYou),
+        header: Value(jsonEncode(apiResponse.response!.headers.map)),
+        response: Value(jsonEncode(apiResponse.response!.data)),
+      ));
+    } else {
+      await database.insertCacheResponse(
+        CacheResponseCompanion(
+          endPoint: const Value(AppConstants.justForYou),
+          header: Value(jsonEncode(apiResponse.response!.headers.map)),
+          response: Value(jsonEncode(apiResponse.response!.data)),
+        ),
+      );
+    }
+
     }
     notifyListeners();
   }
 
   ProductModel? mostSearchingProduct;
   Future<void> getMostSearchingProduct(int offset, {bool reload = false}) async {
+
+    var localData =  await database.getCacheResponseById(AppConstants.mostSearching);
+
+    if(localData != null) {
+      mostSearchingProduct = ProductModel.fromJson(jsonDecode(localData.response));
+      notifyListeners();
+    }
+
+
     ApiResponse apiResponse = await productServiceInterface!.getMostSearchingProductList(offset);
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
       if(apiResponse.response?.data['products'] != null && apiResponse.response?.data['products'] != 'null'){
         if(offset == 1) {
           mostSearchingProduct = ProductModel.fromJson(apiResponse.response?.data);
+
+          if(localData != null) {
+            await database.updateCacheResponse(AppConstants.mostSearching, CacheResponseCompanion(
+              endPoint: const Value(AppConstants.mostSearching),
+              header: Value(jsonEncode(apiResponse.response!.headers.map)),
+              response: Value(jsonEncode(apiResponse.response!.data)),
+            ));
+          } else {
+            await database.insertCacheResponse(
+              CacheResponseCompanion(
+                endPoint: const Value(AppConstants.mostSearching),
+                header: Value(jsonEncode(apiResponse.response!.headers.map)),
+                response: Value(jsonEncode(apiResponse.response!.data)),
+              ),
+            );
+          }
+
+
         }else {
           mostSearchingProduct!.products!.addAll(ProductModel.fromJson(apiResponse.response?.data).products!);
           mostSearchingProduct!.offset = ProductModel.fromJson(apiResponse.response?.data).offset;

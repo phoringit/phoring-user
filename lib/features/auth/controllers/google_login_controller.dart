@@ -8,9 +8,6 @@ class GoogleSignInController with ChangeNotifier {
 
   Future<void> login() async {
     googleAccount = await _googleSignIn.signIn();
-    print("===GogleAccount===>${googleAccount?.email}");
-    print("===GogleAccount===>${googleAccount?.id}");
-    print("===GogleAccount===>${googleAccount?.authentication}");
 
     // auth = await googleAccount!.authentication;
 

@@ -64,6 +64,43 @@ class CartRepository implements CartRepositoryInterface<ApiResponse>{
 
 
 
+  @override
+  Future<ApiResponse> restockRequest(CartModelBody cart, List<ChoiceOptions> choiceOptions, List<int>? variationIndexes,
+      int? buyNow, int? shippingMethodExist, int? shippingMethodId) async {
+    Map<String?, dynamic> choice = {};
+    for(int index=0; index<choiceOptions.length; index++){
+      choice.addAll({choiceOptions[index].name: choiceOptions[index].options![variationIndexes![index]]});
+    }
+    Map<String?, dynamic> data = {
+      'id': cart.productId,
+      'guest_id' : Provider.of<AuthController>(Get.context!, listen: false).getGuestToken(),
+      'variant': cart.variation?.type,
+      'quantity': cart.quantity,
+      'buy_now': buyNow,
+      'shipping_method_exist': shippingMethodExist,
+      'shipping_method_id': shippingMethodId,
+    };
+    data.addAll(choice);
+    if(cart.variant!.isNotEmpty) {
+      data.addAll({'color': cart.color});
+    }
+    if(cart.variantKey != null){
+      data.addAll({
+        'variant_key': cart.variantKey,
+        'digital_variation_price': cart.digitalVariantPrice
+      });
+    }
+
+    try {
+      final response = await dioClient!.post(AppConstants.productRestockRequest, data: data);
+      return ApiResponse.withSuccess(response);
+    } catch (e) {
+      return ApiResponse.withError(ApiErrorHandler.getMessage(e));
+    }
+  }
+
+
+
 
   @override
   Future<ApiResponse> updateQuantity(int? key,int quantity) async {

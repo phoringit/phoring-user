@@ -8,11 +8,13 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/demo_reset_dialog_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/auth/screens/auth_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/screens/login_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/screens/dashboard_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/maintenance/maintenance_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_details/screens/order_details_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/product_details/screens/product_details_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/restock/controllers/restock_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/restock/widgets/restock_%20bottom_sheet.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wallet/screens/wallet_screen.dart';
@@ -37,11 +39,11 @@ class NotificationHelper {
     flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
     flutterLocalNotificationsPlugin.initialize(initializationsSettings, onDidReceiveNotificationResponse: (NotificationResponse load) async {
       try{
-
+        log("tyyuuyypee88=11=>${load}");
+        log("==Payload=11=>${load.payload}");
         NotificationBody payload;
 
         if(load.payload!.isNotEmpty) {
-
           payload = NotificationBody.fromJson(jsonDecode(load.payload!));
           log("tyyuuyypee88==>${payload.type}");
           log("==Payload==>${load.payload}");
@@ -51,6 +53,8 @@ class NotificationHelper {
             Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  const WalletScreen()));
           } else if(payload.type == 'chatting') {
             Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  InboxScreen(isBackButtonExist: true, initIndex: payload.messageKey ==  'message_from_delivery_man' ? 0 : 1, fromNotification: true)));
+          } else if(payload.type == 'product_restock_update') {
+            Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  ProductDetails(productId: int.parse(payload.productId!), slug: payload.slug, isNotification: true)));
           } else{
             Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  const NotificationScreen(fromNotification: true,)));
           }
@@ -73,7 +77,7 @@ class NotificationHelper {
 
       if(message.data['type'] == 'maintenance_mode') {
         final SplashController splashProvider = Provider.of<SplashController>(Get.context!,listen: false);
-        await splashProvider.initConfig(Get.context!);
+        await splashProvider.initConfig(Get.context!, null, null);
 
         ConfigModel? config = Provider.of<SplashController>(Get.context!,listen: false).configModel;
 
@@ -91,8 +95,22 @@ class NotificationHelper {
         }
       }
 
-      if(message.data['type'] != 'maintenance_mode') {
+      if(message.data['type'] != 'maintenance_mode' || message.data['type'] != 'product_restock_update') {
         NotificationHelper.showNotification(message, flutterLocalNotificationsPlugin, false);
+      }
+
+      if(message.data['type'] == 'product_restock_update' && !Provider.of<RestockController>(Get.context!, listen: false).isBottomSheetOpen){
+        NotificationBody notificationBody = convertNotification(message.data);
+        Provider.of<RestockController>(Get.context!, listen: false).setBottomSheetOpen(true);
+        final result = await showModalBottomSheet(context: Get.context!, isScrollControlled: true,
+          backgroundColor: Theme.of(Get.context!).primaryColor.withOpacity(0),
+          builder: (con) => RestockSheetWidget(notificationBody: notificationBody),
+        );
+
+        if (result == null) {
+          Provider.of<RestockController>(Get.context!, listen: false).setBottomSheetOpen(false);
+        } else {
+        }
       }
     });
 
@@ -116,6 +134,8 @@ class NotificationHelper {
             Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  const NotificationScreen(fromNotification: true,)));
           } else if(notificationBody.type == 'chatting') {
             Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  InboxScreen(isBackButtonExist: true, fromNotification: true, initIndex: notificationBody.messageKey ==  'message_from_delivery_man' ? 0 : 1)));
+          } else if(notificationBody.type == 'product_restock_update') {
+            Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  ProductDetails(productId: int.parse(notificationBody.productId!), slug: notificationBody.slug, isNotification: true)));
           } else {
             Navigator.of(Get.context!).pushReplacement(MaterialPageRoute(builder: (BuildContext context) =>  const NotificationScreen(fromNotification: true,)));
           }
@@ -124,7 +144,7 @@ class NotificationHelper {
 
       if(message.data['type'] == 'maintenance_mode') {
         final SplashController splashProvider = Provider.of<SplashController>(Get.context!,listen: false);
-        await splashProvider.initConfig(Get.context!);
+        await splashProvider.initConfig(Get.context!, null, null);
 
         ConfigModel? config = Provider.of<SplashController>(Get.context!,listen: false).configModel;
 
@@ -160,16 +180,16 @@ class NotificationHelper {
             ? message.data['image'].startsWith('http') ? message.data['image']
             : '${AppConstants.baseUrl}/storage/app/public/notification/${message.data['image']}' : null;
       }else {
-        title = message.notification!.title;
-        body = message.notification!.body;
-        orderID = message.notification!.titleLocKey;
+        title = message.notification?.title;
+        body = message.notification?.body;
+        orderID = message.notification?.titleLocKey;
         if(Platform.isAndroid) {
-          image = (message.notification!.android!.imageUrl != null && message.notification!.android!.imageUrl!.isNotEmpty)
+          image = (message.notification?.android?.imageUrl != null && message.notification!.android!.imageUrl!.isNotEmpty)
               ? message.notification!.android!.imageUrl!.startsWith('http') ? message.notification!.android!.imageUrl
-              : '${AppConstants.baseUrl}/storage/app/public/notification/${message.notification!.android!.imageUrl}' : null;
+              : '${AppConstants.baseUrl}/storage/app/public/notification/${message.notification?.android?.imageUrl}' : null;
         }else if(Platform.isIOS) {
-          image = (message.notification!.apple!.imageUrl != null && message.notification!.apple!.imageUrl!.isNotEmpty)
-              ? message.notification!.apple!.imageUrl!.startsWith('http') ? message.notification!.apple!.imageUrl
+          image = (message.notification?.apple?.imageUrl != null && message.notification!.apple!.imageUrl!.isNotEmpty)
+              ? message.notification!.apple!.imageUrl!.startsWith('http') ? message.notification?.apple?.imageUrl
               : '${AppConstants.baseUrl}/storage/app/public/notification/${message.notification!.apple!.imageUrl}' : null;
         }
       }
@@ -245,7 +265,9 @@ class NotificationHelper {
       return NotificationBody(type: 'wallet');
     }else if(data['type'] == 'block') {
       return NotificationBody(type: 'block');
-    }else {
+    }else if(data['type'] == 'product_restock_update') {
+      return NotificationBody(type: 'product_restock_update', title: data['title'], image: data['image'], productId: data['product_id'].toString(), slug: data['slug'], status: data['status']);
+    } else {
       return NotificationBody(type: 'chatting', messageKey: data['message_key']);
     }
   }

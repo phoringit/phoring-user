@@ -12,7 +12,6 @@ import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.d
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/product_filter_dialog_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/search_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/screens/home_screens.dart';

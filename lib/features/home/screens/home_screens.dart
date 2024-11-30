@@ -22,7 +22,6 @@ import 'package:flutter_sixvalley_ecommerce/features/home/shimmers/flash_deal_sh
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/announcement_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/aster_theme/find_what_you_need_shimmer.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/featured_product_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/features/home/widgets/publication_house_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/search_home_page_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/notification/controllers/notification_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/product_controller.dart';
@@ -55,26 +54,88 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 
   static Future<void> loadData(bool reload) async {
-    await Provider.of<FlashDealController>(Get.context!, listen: false).getFlashDealList(reload, false);
-    await Provider.of<ShopController>(Get.context!, listen: false).getTopSellerList(reload, 1, type: "top");
-    Provider.of<BannerController>(Get.context!, listen: false).getBannerList(reload);
-    Provider.of<CategoryController>(Get.context!, listen: false).getCategoryList(reload);
-    Provider.of<AddressController>(Get.context!, listen: false).getAddressList();
-    await Provider.of<CartController>(Get.context!, listen: false).getCartData(Get.context!);
+    final flashDealController = Provider.of<FlashDealController>(Get.context!, listen: false);
+    final shopController = Provider.of<ShopController>(Get.context!, listen: false);
+    final categoryController = Provider.of<CategoryController>(Get.context!, listen: false);
+    final bannerController = Provider.of<BannerController>(Get.context!, listen: false);
+    final addressController = Provider.of<AddressController>(Get.context!, listen: false);
+    final productController = Provider.of<ProductController>(Get.context!, listen: false);
+    final brandController = Provider.of<BrandController>(Get.context!, listen: false);
+    final featuredDealController = Provider.of<FeaturedDealController>(Get.context!, listen: false);
+    final notificationController = Provider.of<NotificationController>(Get.context!, listen: false);
+    final cartController = Provider.of<CartController>(Get.context!, listen: false);
+    final profileController = Provider.of<ProfileController>(Get.context!, listen: false);
 
-    await Provider.of<ProductController>(Get.context!, listen: false).getHomeCategoryProductList(reload);
-    await Provider.of<BrandController>(Get.context!, listen: false).getBrandList(reload);
-    await Provider.of<ProductController>(Get.context!, listen: false).getLatestProductList(1, reload: reload);
-    await Provider.of<ProductController>(Get.context!, listen: false).getFeaturedProductList('1', reload: reload);
-    await Provider.of<FeaturedDealController>(Get.context!, listen: false).getFeaturedDealList(reload);
-    await Provider.of<ProductController>(Get.context!, listen: false).getLProductList('1', reload: reload);
-    await Provider.of<ProductController>(Get.context!, listen: false).getRecommendedProduct();
-    await Provider.of<NotificationController>(Get.context!, listen: false).getNotificationList(1);
-    if(Provider.of<AuthController>(Get.context!, listen: false).isLoggedIn()){
-      await  Provider.of<ProfileController>(Get.context!, listen: false).getUserInfo(Get.context!);
+    if(flashDealController.flashDealList.isEmpty || reload) {
+      // await flashDealController.getFlashDealList(reload, false);
     }
 
-  }
+
+
+    categoryController.getCategoryList(reload);
+      ///
+
+
+    bannerController.getBannerList(reload);
+      ///
+
+      shopController.getTopSellerList(reload, 1, type: "top");
+
+
+      shopController.getAllSellerList(reload, 1, type: "all");
+
+
+    if(addressController.addressList == null || (addressController.addressList != null && addressController.addressList!.isEmpty) || reload) {
+        addressController.getAddressList();
+      }
+
+
+       cartController.getCartData(Get.context!);
+
+
+
+       productController.getHomeCategoryProductList(reload);
+       ///
+
+
+
+       brandController.getBrandList(reload);
+       ///
+
+
+
+      featuredDealController.getFeaturedDealList(reload);
+      ///
+
+      productController.getLProductList('1', reload: reload);
+      ///
+
+      productController.getLatestProductList(1, reload: reload);
+      ///
+
+
+      productController.getFeaturedProductList('1', reload: reload);
+      ///
+
+
+      productController.getRecommendedProduct();
+      ///
+
+
+      if(notificationController.notificationModel == null ||
+          (notificationController.notificationModel != null
+              && notificationController.notificationModel!.notification!.isEmpty)
+          || reload) {
+        notificationController.getNotificationList(1);
+      }
+
+      if(Provider.of<AuthController>(Get.context!, listen: false).isLoggedIn() && profileController.userInfoModel == null){
+        profileController.getUserInfo(Get.context!);
+      }
+
+
+    }
+
 
 }
 
@@ -106,7 +167,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(resizeToAvoidBottomInset: false,
       body: SafeArea(child: RefreshIndicator(
         onRefresh: () async {
-          await HomePage.loadData( true);
+          await HomePage.loadData(true);
         },
         child: CustomScrollView(controller: _scrollController, slivers: [
           SliverAppBar(
@@ -159,9 +220,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: Dimensions.paddingSizeSmall),
 
-                  Text(getTranslated('hurry_up_the_offer_is_limited_grab_while_it_lasts', context)??'',
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
+                    child: Text(getTranslated('hurry_up_the_offer_is_limited_grab_while_it_lasts', context)??'',
                       style: textRegular.copyWith(color: Provider.of<ThemeController>(context, listen: false).darkTheme?
-                      Theme.of(context).hintColor : Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault)),
+                      Theme.of(context).hintColor : Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                   const SizedBox(height: Dimensions.paddingSizeSmall),
 
                   const FlashDealsListWidget()]) : const SizedBox.shrink();
@@ -209,9 +275,11 @@ class _HomePageState extends State<HomePage> {
               }),
               const SizedBox(height: Dimensions.paddingSizeDefault),
 
-              
 
-              const FeaturedProductWidget(),
+              Consumer<ProductController>(builder: (context, productController,_) {
+                  return FeaturedProductWidget();
+                }
+              ),
               const SizedBox(height: Dimensions.paddingSizeDefault),
 
 
@@ -258,9 +326,6 @@ class _HomePageState extends State<HomePage> {
               ],
 
 
-              // const PublicatioinHouseWidget(isHomePage: true),
-
-
 
               const HomeCategoryProductWidget(isHomePage: true),
               const SizedBox(height: Dimensions.paddingSizeDefault),
@@ -270,74 +335,76 @@ class _HomePageState extends State<HomePage> {
 
 
 
+
               Consumer<ProductController>(
-                  builder: (ctx,prodProvider,child) {
+                builder: (ctx,prodProvider,child) {
+                  return Container(decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onSecondaryContainer),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Padding(padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault, 0, Dimensions.paddingSizeSmall, 0),
+                            child: Row(children: [
+                              Expanded(child: Text(prodProvider.title == 'xyz' ? getTranslated('new_arrival',context)!:
+                              prodProvider.title!, style: titleHeader)),
+                              prodProvider.latestProductList != null ?
+                              PopupMenuButton(
+                                padding: const EdgeInsets.all(0),
+                                itemBuilder: (context) {
+                                  return [
 
-                    return Container(decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.onSecondaryContainer),
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Padding(padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault, 0, Dimensions.paddingSizeSmall, 0),
-                              child: Row(children: [
-                                Expanded(child: Text(prodProvider.title == 'xyz' ? getTranslated('new_arrival',context)!:
-                                prodProvider.title!, style: titleHeader)),
-                                prodProvider.latestProductList != null ?
-                                PopupMenuButton(
-                                  padding: const EdgeInsets.all(0),
-                                  itemBuilder: (context) {
-                                    return [
+                                    PopupMenuItem(
+                                      value: ProductType.newArrival,
+                                      child: Text(getTranslated('new_arrival',context)??'', style: textRegular.copyWith(
+                                        color: prodProvider.productType == ProductType.newArrival ? Theme.of(context).primaryColor :  Theme.of(context).textTheme.bodyLarge?.color,
+                                      )),
+                                    ),
 
-                                      PopupMenuItem(
-                                        value: ProductType.newArrival,
-                                        child: Text(getTranslated('new_arrival',context)??'', style: textRegular.copyWith(
-                                          color: prodProvider.productType == ProductType.newArrival ? Theme.of(context).primaryColor :  Theme.of(context).textTheme.bodyLarge?.color,
-                                        )),
-                                      ),
+                                    PopupMenuItem(
+                                      value: ProductType.topProduct,
+                                      child: Text(getTranslated('top_product',context)??'', style: textRegular.copyWith(
+                                        color: prodProvider.productType == ProductType.topProduct ? Theme.of(context).primaryColor :  Theme.of(context).textTheme.bodyLarge?.color,
+                                      )),
+                                    ),
 
-                                      PopupMenuItem(
-                                        value: ProductType.topProduct,
-                                        child: Text(getTranslated('top_product',context)??'', style: textRegular.copyWith(
-                                          color: prodProvider.productType == ProductType.topProduct ? Theme.of(context).primaryColor :  Theme.of(context).textTheme.bodyLarge?.color,
-                                        )),
-                                      ),
+                                    PopupMenuItem(
+                                      value: ProductType.bestSelling,
+                                      child: Text(getTranslated('best_selling',context)??'', style: textRegular.copyWith(
+                                        color: prodProvider.productType == ProductType.bestSelling ? Theme.of(context).primaryColor :  Theme.of(context).textTheme.bodyLarge?.color,
+                                      )),
+                                    ),
 
-                                      PopupMenuItem(
-                                        value: ProductType.bestSelling,
-                                        child: Text(getTranslated('best_selling',context)??'', style: textRegular.copyWith(
-                                          color: prodProvider.productType == ProductType.bestSelling ? Theme.of(context).primaryColor :  Theme.of(context).textTheme.bodyLarge?.color,
-                                        )),
-                                      ),
+                                    PopupMenuItem(
+                                      value: ProductType.discountedProduct,
+                                      child: Text(getTranslated('discounted_product',context)??'',  style: textRegular.copyWith(
+                                        color: prodProvider.productType == ProductType.discountedProduct ? Theme.of(context).primaryColor :  Theme.of(context).textTheme.bodyLarge?.color,
+                                      )),
+                                    ),
+                                  ];
+                                },
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall)),
+                                child: Padding(padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeExtraSmall,
+                                    Dimensions.paddingSizeSmall,
+                                    Dimensions.paddingSizeExtraSmall,Dimensions.paddingSizeSmall ),
+                                    child: Image.asset(Images.dropdown, scale: 3)),
+                                onSelected: (ProductType value) {
+                                  if(value == ProductType.newArrival){
+                                    Provider.of<ProductController>(context, listen: false).changeTypeOfProduct(value, types[0]);
+                                  }else if(value == ProductType.topProduct){
+                                    Provider.of<ProductController>(context, listen: false).changeTypeOfProduct(value, types[1]);
+                                  }else if(value == ProductType.bestSelling){
+                                    Provider.of<ProductController>(context, listen: false).changeTypeOfProduct(value, types[2]);
+                                  }else if(value == ProductType.discountedProduct){
+                                    Provider.of<ProductController>(context, listen: false).changeTypeOfProduct(value, types[3]);
+                                  }
+                                 //  Provider.of<ProductController>(context, listen: false).getLatestProductList(1, reload: true);
+                                },
+                              ) : const SizedBox()])),
 
-                                      PopupMenuItem(
-                                        value: ProductType.discountedProduct,
-                                        child: Text(getTranslated('discounted_product',context)??'',  style: textRegular.copyWith(
-                                          color: prodProvider.productType == ProductType.discountedProduct ? Theme.of(context).primaryColor :  Theme.of(context).textTheme.bodyLarge?.color,
-                                        )),
-                                      ),
-                                    ];
-                                  },
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall)),
-                                  child: Padding(padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeExtraSmall,
-                                      Dimensions.paddingSizeSmall,
-                                      Dimensions.paddingSizeExtraSmall,Dimensions.paddingSizeSmall ),
-                                      child: Image.asset(Images.dropdown, scale: 3)),
-                                  onSelected: (ProductType value) {
-                                    if(value == ProductType.newArrival){
-                                      Provider.of<ProductController>(context, listen: false).changeTypeOfProduct(value, types[0]);
-                                    }else if(value == ProductType.topProduct){
-                                      Provider.of<ProductController>(context, listen: false).changeTypeOfProduct(value, types[1]);
-                                    }else if(value == ProductType.bestSelling){
-                                      Provider.of<ProductController>(context, listen: false).changeTypeOfProduct(value, types[2]);
-                                    }else if(value == ProductType.discountedProduct){
-                                      Provider.of<ProductController>(context, listen: false).changeTypeOfProduct(value, types[3]);
-                                    }
-                                    Provider.of<ProductController>(context, listen: false).getLatestProductList(1, reload: true);
-                                  },
-                                ) : const SizedBox()])),
+                        Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
+                          child: ProductListWidget(isHomePage: false, productType: ProductType.newArrival,
+                              scrollController: _scrollController),),
+                        const SizedBox(height: Dimensions.homePagePadding)]));}),
 
-                          Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
-                            child: ProductListWidget(isHomePage: false, productType: ProductType.newArrival,
-                                scrollController: _scrollController),),
-                          const SizedBox(height: Dimensions.homePagePadding)]));}),
+
             ],
             ),
           )

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.phoringit.pmart"
+    package="com.sixamtech.sixvalley"
     android:targetSandboxVersion="1" xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -35,7 +35,8 @@
     </queries>
 
     <application
-        android:label="PHORING Mart"
+        android:label="6Valley"
+        android:extractNativeLibs="true"
         android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config"

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/dashboard/screens/dashboard_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/product_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/seller_product_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/controllers/product_details_controller.dart';
@@ -22,14 +23,14 @@ import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dar
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/title_row_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/features/shop/widgets/shop_product_view_list.dart';
 import 'package:provider/provider.dart';
 
 class ProductDetails extends StatefulWidget {
   final int? productId;
   final String? slug;
   final bool isFromWishList;
-  const ProductDetails({super.key, required this.productId, required this.slug, this.isFromWishList = false});
+  final bool isNotification;
+  const ProductDetails({super.key, required this.productId, required this.slug, this.isFromWishList = false, this.isNotification = false});
 
   @override
   State<ProductDetails> createState() => _ProductDetailsState();
@@ -63,128 +64,147 @@ class _ProductDetailsState extends State<ProductDetails> {
   @override
   Widget build(BuildContext context) {
     ScrollController scrollController = ScrollController();
-    return Scaffold(
-      appBar: CustomAppBar(title: getTranslated('product_details', context)),
-
-      body: RefreshIndicator(onRefresh: () async => _loadData(context),
-        child: Consumer<ProductDetailsController>(
-          builder: (context, details, child) {
-            if(details.productDetailsModel?.publishingHouse != null && details.productDetailsModel!.publishingHouse!.isNotEmpty) {
-              _publishingHouse = [];
-              for(String? houseName in details.productDetailsModel!.publishingHouse!) {
-                _publishingHouse.add(TextSpan(text: houseName!+' ' , style: titilliumSemiBold.copyWith(fontSize: Dimensions.fontSizeDefault)));
-              }
+    return PopScope(
+      canPop: Navigator.canPop(context),
+      onPopInvokedWithResult: (didPop, result) async{
+        if(widget.isNotification) {
+          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => const DashBoardScreen()), (route) => false);
+        } else {
+          return;
+        }
+      },
+      child: Scaffold(
+        appBar: CustomAppBar(
+          title: getTranslated('product_details', context),
+          onBackPressed: () {
+            if(Navigator.of(context).canPop()){
+              Navigator.of(context).pop();
+            }else {
+              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => const DashBoardScreen()), (route) => false);
             }
-
-            if(details.productDetailsModel?.authors != null && details.productDetailsModel!.authors!.isNotEmpty) {
-              _authors = [];
-              for(String? authorName in details.productDetailsModel!.authors!) {
-                _authors.add(TextSpan(text: authorName!+' ', style: titilliumSemiBold.copyWith(fontSize: Dimensions.fontSizeDefault)));
-              }
-            }
-
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: !details.isDetails?
-              Column(children: [
-
-                ProductImageWidget(productModel: details.productDetailsModel),
-
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  ProductTitleWidget(productModel: details.productDetailsModel,
-                      averageRatting: details.productDetailsModel?.averageReview?? "0"),
-
-
-                  (details.productDetailsModel?.productType == 'digital' && (_publishingHouse.isNotEmpty || _authors.isNotEmpty)) ?
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal : Dimensions.homePagePadding),
-                    child: RichText(text: TextSpan(
-                        text: '', style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 14, color: const Color(0xFF202532)),
-                      children: [
-                        if (details.productDetailsModel?.publishingHouse != null && details.productDetailsModel!.publishingHouse!.isNotEmpty)
-                        TextSpan( text: "${getTranslated('publishing_housec', context)}",
-                          style: titilliumRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).hintColor)
-                        ),
-                        ..._publishingHouse,
-
-                        if (details.productDetailsModel?.publishingHouse != null && details.productDetailsModel!.publishingHouse!.isNotEmpty)
-                        WidgetSpan(
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                            height: 15.0, width: 1.0,
-                            color: Theme.of(context).primaryColor.withOpacity(0.50),
-                          ),
-                        ),
-
-
-                        if (details.productDetailsModel?.authors != null && details.productDetailsModel!.authors!.isNotEmpty)
-                          TextSpan( text: "${getTranslated('author', context)}",
-                              style: titilliumRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).hintColor)
-                          ),
-                        ..._authors,
-                      ]
-
-                    )),
-                  ) : const SizedBox(),
-
-
-
-                  const ReviewAndSpecificationSectionWidget(),
-
-
-                  details.isReviewSelected?
-                  Column(children: [
-                    ReviewSection(details: details),
-
-                    _ProductDetailsProductListWidget(scrollController: scrollController),
-
-
-                  ]):
-
-                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    (details.productDetailsModel?.details != null && details.productDetailsModel!.details!.isNotEmpty) ?
-                    Container(
-                      margin: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
-                      padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                      child: ProductSpecificationWidget(
-                        productSpecification: details.productDetailsModel!.details ?? '',
-                      ),
-                    ) : const SizedBox(),
-
-                    (details.productDetailsModel?.videoUrl != null && details.isValidYouTubeUrl(details.productDetailsModel!.videoUrl!))?
-                    YoutubeVideoWidget(url: details.productDetailsModel!.videoUrl):const SizedBox(),
-
-
-                    (details.productDetailsModel != null) ?
-                    ShopInfoWidget(sellerId: details.productDetailsModel!.addedBy == 'seller'? details.productDetailsModel!.userId.toString() : "0") : const SizedBox.shrink(),
-
-                    const SizedBox(height: Dimensions.paddingSizeLarge,),
-
-                    Container(padding: const EdgeInsets.only(top: Dimensions.paddingSizeLarge, bottom: Dimensions.paddingSizeDefault),
-                        decoration: BoxDecoration(color: Theme.of(context).cardColor),
-                        child: const PromiseWidget()),
-
-                    _ProductDetailsProductListWidget(scrollController: scrollController),
-
-
-
-                  ],),
-                ],),
-              ],
-              ):
-              const ProductDetailsShimmer(),
-            );
           },
         ),
-      ),
 
-      bottomNavigationBar: Consumer<ProductDetailsController>(
-        builder: (context, details, child) {
-          return !details.isDetails?
-          BottomCartWidget(product: details.productDetailsModel):const SizedBox();
-        }
+        body: RefreshIndicator(onRefresh: () async => _loadData(context),
+          child: Consumer<ProductDetailsController>(
+            builder: (context, details, child) {
+              if(details.productDetailsModel?.publishingHouse != null && details.productDetailsModel!.publishingHouse!.isNotEmpty) {
+                _publishingHouse = [];
+                for(String? houseName in details.productDetailsModel!.publishingHouse!) {
+                  _publishingHouse.add(TextSpan(text: houseName!+' ' , style: titilliumSemiBold.copyWith(fontSize: Dimensions.fontSizeDefault)));
+                }
+              }
+
+              if(details.productDetailsModel?.authors != null && details.productDetailsModel!.authors!.isNotEmpty) {
+                _authors = [];
+                for(String? authorName in details.productDetailsModel!.authors!) {
+                  _authors.add(TextSpan(text: authorName!+' ', style: titilliumSemiBold.copyWith(fontSize: Dimensions.fontSizeDefault)));
+                }
+              }
+
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: !details.isDetails?
+                Column(children: [
+
+                  ProductImageWidget(productModel: details.productDetailsModel),
+
+                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    ProductTitleWidget(productModel: details.productDetailsModel,
+                        averageRatting: details.productDetailsModel?.averageReview?? "0"),
+
+
+                    (details.productDetailsModel?.productType == 'digital' && (_publishingHouse.isNotEmpty || _authors.isNotEmpty)) ?
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal : Dimensions.homePagePadding),
+                      child: RichText(text: TextSpan(
+                          text: '', style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 14, color: const Color(0xFF202532)),
+                        children: [
+                          if (details.productDetailsModel?.publishingHouse != null && details.productDetailsModel!.publishingHouse!.isNotEmpty)
+                          TextSpan( text: "${getTranslated('publishing_housec', context)}",
+                            style: titilliumRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).hintColor)
+                          ),
+                          ..._publishingHouse,
+
+                          if (details.productDetailsModel?.publishingHouse != null && details.productDetailsModel!.publishingHouse!.isNotEmpty)
+                          WidgetSpan(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                              height: 15.0, width: 1.0,
+                              color: Theme.of(context).primaryColor.withOpacity(0.50),
+                            ),
+                          ),
+
+
+                          if (details.productDetailsModel?.authors != null && details.productDetailsModel!.authors!.isNotEmpty)
+                            TextSpan( text: "${getTranslated('author', context)}",
+                                style: titilliumRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).hintColor)
+                            ),
+                          ..._authors,
+                        ]
+
+                      )),
+                    ) : const SizedBox(),
+
+
+
+                    const ReviewAndSpecificationSectionWidget(),
+
+
+                    details.isReviewSelected?
+                    Column(children: [
+                      ReviewSection(details: details),
+
+                      _ProductDetailsProductListWidget(scrollController: scrollController),
+
+
+                    ]):
+
+                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      (details.productDetailsModel?.details != null && details.productDetailsModel!.details!.isNotEmpty) ?
+                      Container(
+                        margin: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
+                        padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
+                        child: ProductSpecificationWidget(
+                          productSpecification: details.productDetailsModel!.details ?? '',
+                        ),
+                      ) : const SizedBox(),
+
+                      (details.productDetailsModel?.videoUrl != null && details.isValidYouTubeUrl(details.productDetailsModel!.videoUrl!))?
+                      YoutubeVideoWidget(url: details.productDetailsModel!.videoUrl):const SizedBox(),
+
+
+                      (details.productDetailsModel != null) ?
+                      ShopInfoWidget(sellerId: details.productDetailsModel!.addedBy == 'seller'? details.productDetailsModel!.userId.toString() : "0") : const SizedBox.shrink(),
+
+                      const SizedBox(height: Dimensions.paddingSizeLarge,),
+
+                      Container(padding: const EdgeInsets.only(top: Dimensions.paddingSizeLarge, bottom: Dimensions.paddingSizeDefault),
+                          decoration: BoxDecoration(color: Theme.of(context).cardColor),
+                          child: const PromiseWidget()),
+
+                      _ProductDetailsProductListWidget(scrollController: scrollController),
+
+
+
+                    ],),
+                  ],),
+                ],
+                ):
+                const ProductDetailsShimmer(),
+              );
+            },
+          ),
+        ),
+
+        bottomNavigationBar: Consumer<ProductDetailsController>(
+          builder: (context, details, child) {
+            return !details.isDetails?
+            BottomCartWidget(product: details.productDetailsModel):const SizedBox();
+          }
+        ),
       ),
     );
   }
@@ -244,11 +264,11 @@ class _ProductDetailsProductListWidget extends StatelessWidget {
                   scrollController: scrollController, sellerId: productDetailsController.productDetailsModel!.userId!)),
 
             Consumer<ProductController>(
-                builder: (context, productController,_) {
-                  return (productController.relatedProductList != null && productController.relatedProductList!.isNotEmpty)?Padding(padding: const EdgeInsets.symmetric(
-                      vertical: Dimensions.paddingSizeExtraSmall),
-                      child: TitleRowWidget(title: getTranslated('related_products', context), isDetailsPage: true)): const SizedBox();
-                }
+              builder: (context, productController,_) {
+                return (productController.relatedProductList != null && productController.relatedProductList!.isNotEmpty)?Padding(padding: const EdgeInsets.symmetric(
+                    vertical: Dimensions.paddingSizeExtraSmall),
+                    child: TitleRowWidget(title: getTranslated('related_products', context), isDetailsPage: true)): const SizedBox();
+              }
             ),
             const SizedBox(height: 5),
             const Padding(padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),

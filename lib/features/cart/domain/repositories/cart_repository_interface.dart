@@ -10,4 +10,6 @@ abstract class CartRepositoryInterface<T> implements RepositoryInterface{
 
   Future<dynamic> addRemoveCartSelectedItem(Map<String, dynamic> data);
 
+  Future<dynamic> restockRequest(CartModelBody cart, List<ChoiceOptions> choiceOptions, List<int>? variationIndexes, int buyNow, int? shippingMethodExist, int? shippingMethodId);
+
 }

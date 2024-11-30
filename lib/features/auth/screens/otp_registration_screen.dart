@@ -50,7 +50,6 @@ class _OtpRegistrationScreenState extends State<OtpRegistrationScreen> {
       _nameController?.text = widget.userName!;
     }
 
-    print("====0101===>>${widget.userInput}");
 
   }
 
@@ -60,10 +59,8 @@ class _OtpRegistrationScreenState extends State<OtpRegistrationScreen> {
     final double width = MediaQuery.of(context).size.width;
     final Size size = MediaQuery.of(context).size;
 
-    print("====UserInput===>>${widget.userInput}");
     bool isNumber = NumberCheckerHelper.isNumber(widget.userInput.trim().replaceAll('+', ''));
     final configModel = Provider.of<SplashController>(context, listen: false).configModel!;
-    print("====isNumber===>>${isNumber}");
 
 
     return Scaffold(

@@ -23,7 +23,8 @@ class ProductListWidget extends StatelessWidget {
     
     int offset = 1;
     scrollController?.addListener(() {
-      if(scrollController!.position.maxScrollExtent == scrollController!.position.pixels
+      if(scrollController!.position.maxScrollExtent == scrollController!.position.pixels &&
+          Provider.of<ProductController>(context, listen: false).latestProductList != null
           && Provider.of<ProductController>(context, listen: false).latestProductList!.isNotEmpty
           && !Provider.of<ProductController>(context, listen: false).filterIsLoading) {
         late int pageSize;
@@ -40,6 +41,9 @@ class ProductListWidget extends StatelessWidget {
             offset = Provider.of<ProductController>(context, listen: false).lOffset;
           }
         }
+
+
+
 
         else if(productType == ProductType.justForYou){
 
@@ -61,6 +65,11 @@ class ProductListWidget extends StatelessWidget {
     return Consumer<ProductController>(
       builder: (context, prodProvider, child) {
         List<Product>? productList = [];
+
+        // print(productType);
+        // print("=====>>${prodProvider.latestProductList}<<======");
+
+
         if(productType == ProductType.latestProduct) {
           productList = prodProvider.lProductList;
         }

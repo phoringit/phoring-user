@@ -1,10 +1,16 @@
+import 'dart:convert';
+
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/data/local/cache_response.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/shop/domain/models/more_store_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/shop/domain/models/seller_info_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/shop/domain/models/seller_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/shop/domain/services/shop_service_interface.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/api_checker.dart';
+import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 
 class ShopController extends ChangeNotifier {
   final ShopServiceInterface? shopServiceInterface;
@@ -36,11 +42,38 @@ class ShopController extends ChangeNotifier {
   bool isLoading = false;
   List<MostPopularStoreModel> moreStoreList =[];
   Future<ApiResponse> getMoreStore() async {
+    var localData =  await database.getCacheResponseById(AppConstants.moreStore);
+
+    if(localData != null) {
+      var _moreStoreList = jsonDecode(localData.response);
+
+      _moreStoreList.forEach((store)=> moreStoreList.add(MostPopularStoreModel.fromJson(store)));
+      notifyListeners();
+    }
+
     moreStoreList = [];
     isLoading = true;
     ApiResponse apiResponse = await shopServiceInterface!.getMoreStore();
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
       apiResponse.response?.data.forEach((store)=> moreStoreList.add(MostPopularStoreModel.fromJson(store)));
+
+      if(localData != null) {
+        await database.updateCacheResponse(AppConstants.moreStore, CacheResponseCompanion(
+          endPoint: const Value(AppConstants.moreStore),
+          header: Value(jsonEncode(apiResponse.response!.headers.map)),
+          response: Value(jsonEncode(apiResponse.response!.data)),
+        ));
+      } else {
+        await database.insertCacheResponse(
+          CacheResponseCompanion(
+            endPoint: const Value(AppConstants.moreStore),
+            header: Value(jsonEncode(apiResponse.response!.headers.map)),
+            response: Value(jsonEncode(apiResponse.response!.data)),
+          ),
+        );
+      }
+
+
     } else {
       isLoading = false;
       ApiChecker.checkApi( apiResponse);
@@ -69,6 +102,14 @@ class ShopController extends ChangeNotifier {
 
   SellerModel? sellerModel;
   Future<void> getTopSellerList(bool reload, int offset, {required String type}) async {
+
+    var localData =  await database.getCacheResponseById("${AppConstants.sellerList}$type");
+
+    if(localData != null) {
+      sellerModel = SellerModel.fromJson(jsonDecode(localData.response));
+      notifyListeners();
+    }
+
       ApiResponse apiResponse = await shopServiceInterface!.getSellerList(type, offset);
       if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
         if(offset == 1){
@@ -80,8 +121,70 @@ class ShopController extends ChangeNotifier {
           sellerModel?.offset  = (SellerModel.fromJson(apiResponse.response!.data).offset!);
           sellerModel?.totalSize  = (SellerModel.fromJson(apiResponse.response!.data).totalSize!);
         }
+
+        if (localData != null) {
+          await database.updateCacheResponse("${AppConstants.sellerList}$type", CacheResponseCompanion(
+            endPoint: Value("${AppConstants.sellerList}$type"),
+            header: Value(jsonEncode(apiResponse.response!.headers.map)),
+            response: Value(jsonEncode(apiResponse.response!.data)),
+          ));
+        } else {
+          await database.insertCacheResponse(
+            CacheResponseCompanion(
+              endPoint: Value("${AppConstants.sellerList}$type"),
+              header: Value(jsonEncode(apiResponse.response!.headers.map)),
+              response: Value(jsonEncode(apiResponse.response!.data)),
+            ),
+          );
+        }
       }
-      notifyListeners();
+    notifyListeners();
   }
+
+  SellerModel? allSellerModel;
+  Future<void> getAllSellerList(bool reload, int offset, {required String type}) async {
+
+    var localData =  await database.getCacheResponseById("${AppConstants.sellerList}$type");
+
+    if(localData != null) {
+      allSellerModel = SellerModel.fromJson(jsonDecode(localData.response));
+      notifyListeners();
+    }
+
+
+    ApiResponse apiResponse = await shopServiceInterface!.getSellerList('all', offset);
+    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
+      if(offset == 1){
+        allSellerModel = null;
+        // SellerModel.fromJson(apiResponse.response?.data);
+        allSellerModel = SellerModel.fromJson(apiResponse.response?.data);
+
+        if (localData != null) {
+          await database.updateCacheResponse("${AppConstants.sellerList}$type", CacheResponseCompanion(
+            endPoint: Value("${AppConstants.sellerList}$type"),
+            header: Value(jsonEncode(apiResponse.response!.headers.map)),
+            response: Value(jsonEncode(apiResponse.response!.data)),
+          ));
+        } else {
+          await database.insertCacheResponse(
+            CacheResponseCompanion(
+              endPoint: Value("${AppConstants.sellerList}$type"),
+              header: Value(jsonEncode(apiResponse.response!.headers.map)),
+              response: Value(jsonEncode(apiResponse.response!.data)),
+            ),
+          );
+        }
+      }else{
+        allSellerModel?.sellers?.addAll(SellerModel.fromJson(apiResponse.response!.data).sellers??[]);
+        allSellerModel?.offset  = (SellerModel.fromJson(apiResponse.response!.data).offset!);
+        allSellerModel?.totalSize  = (SellerModel.fromJson(apiResponse.response!.data).totalSize!);
+      }
+    }
+
+
+
+    notifyListeners();
+  }
+
 
 }

@@ -2,11 +2,12 @@ import 'package:flutter_sixvalley_ecommerce/localization/models/language_model.d
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 
 class AppConstants {
-  static const String appName = 'PHORING Mart';
+  static const String appName = '6valley';
   static const String slogan = 'E-Commerce Marketplace';
-  static const String appVersion = '14.8';
+  static const String appVersion = '14.9'; ///Flutter SDK: 3.24.3
 
-  static const String baseUrl = 'https://ephoring.com.bd';
+  static const String baseUrl = 'Your_Base_URL';
+
   static const String userId = 'userId';
   static const String name = 'name';
   static const String categoriesUri = '/api/v1/categories?guest_id=1';
@@ -112,6 +113,11 @@ class AppConstants {
   static const String getDigitalPublishingHouse = '/api/v1/products/digital-publishing-house-list?guest_id=1';
   static const String verifyProfileInfo = '/api/v1/auth/verify-profile-info';
   static const String firebaseAuthTokenStore = '/api/v1/auth/firebase-auth-token-store';
+  static const String productRestockRequest = '/api/v1/cart/product-restock-request';
+  static const String productRestockList = '/api/v1/customer/restock-requests/list?';
+  static const String productRestockDelete = '/api/v1/customer/restock-requests/delete';
+
+
 
   //address
   static const String updateAddressUri = '/api/v1/customer/address/update';

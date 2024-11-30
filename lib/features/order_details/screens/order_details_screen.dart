@@ -38,7 +38,7 @@ class OrderDetailsScreen extends StatefulWidget {
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   void _loadData(BuildContext context) async {
-    if(Provider.of<AuthController>(context, listen: false).isLoggedIn() && !widget.fromTrack){
+    if(Provider.of<AuthController>(context, listen: false).isLoggedIn() && !widget.fromTrack) {
       await Provider.of<OrderDetailsController>(Get.context!, listen: false).getOrderDetails(widget.orderId.toString());
       await Provider.of<OrderController>(Get.context!, listen: false).initTrackingInfo(widget.orderId.toString());
       await Provider.of<OrderDetailsController>(Get.context!, listen: false).getOrderFromOrderId(widget.orderId.toString());
@@ -52,7 +52,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   void initState() {
     super.initState();
     if(Provider.of<SplashController>(context, listen: false).configModel == null ) {
-      Provider.of<SplashController>(context, listen: false).initConfig(context).then((value){
+      Provider.of<SplashController>(context, listen: false).initConfig(context, null, null).then((value){
         _loadData(context);
         Provider.of<OrderDetailsController>(context, listen: false).digitalOnly(true);
       });

@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:drift/drift.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/data/local/cache_response.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/maintenance/maintenance_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
@@ -25,6 +29,7 @@ class SplashController extends ChangeNotifier {
   bool _firstTimeConnectionCheck = true;
   bool _onOff = true;
   bool get onOff => _onOff;
+  bool isConfigCall = false;
 
   ConfigModel? get configModel => _configModel;
   BaseUrls? get baseUrls => _baseUrls;
@@ -38,18 +43,74 @@ class SplashController extends ChangeNotifier {
 
   BuildContext? _buildContext;
 
-  Future<bool> initConfig(BuildContext context) async {
+  Future<bool> initConfig(
+    BuildContext context,
+      Function(ConfigModel? configModel)? onLocalDataReceived,
+      Function(ConfigModel? configModel)? onApiDataReceived,
+      ) async {
     // final ThemeController themeController = Provider.of<ThemeController>(context, listen: false);
+
+   var configLocalData =  await database.getCacheResponseById(AppConstants.configUri);
+
+   bool _localMaintainanceMode = false;
+
+   isConfigCall = false;
+
+   if(configLocalData != null) {
+     _configModel = ConfigModel.fromJson(jsonDecode(configLocalData.response));
+
+     _localMaintainanceMode = (_configModel?.maintenanceModeData?.maintenanceStatus == 1 && _configModel?.maintenanceModeData?.selectedMaintenanceSystem?.customerApp == 1);
+
+     String? currencyCode = splashServiceInterface!.getCurrency();
+
+     for(CurrencyList currencyList in _configModel!.currencyList!) {
+       if(currencyList.id == _configModel!.systemDefaultCurrency) {
+         if(currencyCode == null || currencyCode.isEmpty) {
+           currencyCode = currencyList.code;
+         }
+         _defaultCurrency = currencyList;
+       }
+       if(currencyList.code == 'USD') {
+         _usdCurrency = currencyList;
+       }
+     }
+     getCurrencyData(currencyCode);
+
+     if(onLocalDataReceived != null) {
+       onLocalDataReceived(configModel);
+     }
+
+   }
 
     _hasConnection = true;
     ApiResponse apiResponse = await splashServiceInterface!.getConfig();
+
+    // _configModel = ConfigModel.fromJson(apiResponse.response!.data);
     bool isSuccess;
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-
+      isSuccess = true;
       _configModel = ConfigModel.fromJson(apiResponse.response!.data);
+      isConfigCall = true;
+
       _baseUrls = ConfigModel.fromJson(apiResponse.response!.data).baseUrls;
+
+      _configModel?.hasLocaldb = configLocalData != null;
+
+      _configModel?.localMaintenanceMode = _localMaintainanceMode;
+
+      if(onApiDataReceived != null) {
+        onApiDataReceived(configModel);
+      }
+
+
       String? currencyCode = splashServiceInterface!.getCurrency();
-      await FirebaseMessaging.instance.subscribeToTopic(AppConstants.maintenanceModeTopic);
+
+      try{
+        await FirebaseMessaging.instance.getToken();
+        await FirebaseMessaging.instance.subscribeToTopic(AppConstants.maintenanceModeTopic);
+      }catch (e) {
+        print("====FirebaseException===>>${e}");
+      }
 
       // themeController.setThemeColor(
       //   primaryColor: ColorHelper.hexCodeToColor(_configModel?.primaryColorCode),
@@ -87,12 +148,30 @@ class SplashController extends ChangeNotifier {
         }
       }
 
+      if(configLocalData != null) {
+        await database.updateCacheResponse(AppConstants.configUri, CacheResponseCompanion(
+          endPoint: const Value(AppConstants.configUri),
+          header: Value(jsonEncode(apiResponse.response!.headers.map)),
+          response: Value(jsonEncode(apiResponse.response!.data)),
+        ));
+      } else {
+        await database.insertCacheResponse(
+          CacheResponseCompanion(
+            endPoint: const Value(AppConstants.configUri),
+            header: Value(jsonEncode(apiResponse.response!.headers.map)),
+            response: Value(jsonEncode(apiResponse.response!.data)),
+          ),
+        );
+      }
+
       isSuccess = true;
     } else {
       isSuccess = false;
-      ApiChecker.checkApi( apiResponse);
+      ApiChecker.checkApi(apiResponse);
       if(apiResponse.error.toString() == 'Connection to API server failed due to internet connection') {
         _hasConnection = false;
+      }else{
+        showCustomSnackBar(apiResponse.error.toString(), Get.context!);
       }
     }
     notifyListeners();

@@ -54,7 +54,8 @@ class _InboxScreenState extends State<InboxScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(canPop: Navigator.of(context).canPop(),
+    return PopScope(
+      canPop: Navigator.of(context).canPop(),
       onPopInvoked: (val) async{
         if(Navigator.of(context).canPop()){
           return;

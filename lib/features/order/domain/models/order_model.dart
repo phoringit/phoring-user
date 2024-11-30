@@ -37,6 +37,7 @@ class Orders {
   String? paymentBy;
   String? paymentNote;
   double? orderAmount;
+  double? paidAmount;
   String? adminCommission;
   String? cause;
   String? createdAt;
@@ -85,6 +86,7 @@ class Orders {
         this.paymentBy,
         this.paymentNote,
         this.orderAmount,
+        this.paidAmount,
         this.adminCommission,
         this.cause,
         this.createdAt,
@@ -138,6 +140,11 @@ class Orders {
     paymentBy = json['payment_by'];
     paymentNote = json['payment_note'];
     orderAmount = json['order_amount'].toDouble();
+    if (json['paid_amount'] != null) {
+      paidAmount = json['paid_amount'].toDouble();
+    }else{
+      paidAmount = 0;
+    }
     adminCommission = json['admin_commission'];
     cause = json['cause'];
     createdAt = json['created_at'];

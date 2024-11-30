@@ -1,21 +1,17 @@
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/response_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/number_checker_helper.dart';
-import 'package:flutter_sixvalley_ecommerce/helper/velidate_check.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/animated_custom_dialog_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_button_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/success_dialog_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_textfield_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/screens/otp_verification_screen.dart';
 import 'package:provider/provider.dart';
@@ -32,10 +28,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   TextEditingController? _userInputController;
   String? _countryCode;
 
-  final TextEditingController _controller = TextEditingController();
   final GlobalKey<ScaffoldMessengerState> _key = GlobalKey();
-  final TextEditingController _numberController = TextEditingController();
-  final FocusNode _numberFocus = FocusNode();
 
   final GlobalKey<FormState> forgetFormKey = GlobalKey<FormState>();
 
@@ -79,14 +72,16 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                     Expanded(flex: 2, child: Divider(thickness: 0.2,
                         color: Theme.of(context).primaryColor))]),
 
-                  splashProvider.configModel!.forgotPasswordVerification == "phone"?
+                  // splashProvider.configModel!.forgotPasswordVerification == "phone"?
                   Text(getTranslated('enter_phone_number_for_password_reset', context)!,
-                      style: titilliumRegular.copyWith(color: Theme.of(context).hintColor,
-                          fontSize: Dimensions.fontSizeDefault)):
-                  Text(getTranslated('enter_email_for_password_reset', context)!,
-                      style: titilliumRegular.copyWith(color: Theme.of(context).hintColor,
-                          fontSize: Dimensions.fontSizeDefault)),
-                  const SizedBox(height: Dimensions.paddingSizeLarge),
+                    style: titilliumRegular.copyWith(color: Theme.of(context).hintColor,
+                    fontSize: Dimensions.fontSizeDefault)),
+                 // :
+                 //  Text(getTranslated('enter_email_for_password_reset', context)!,
+                 //      style: titilliumRegular.copyWith(color: Theme.of(context).hintColor,
+                 //          fontSize: Dimensions.fontSizeDefault)),
+
+                 const SizedBox(height: Dimensions.paddingSizeLarge),
 
 
 
@@ -126,7 +121,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                         isShowBorder: true,
                         controller: _userInputController,
                         inputType: TextInputType.name,
-                        labelText: getTranslated('email/phone', context),
+                        labelText: getTranslated('phone', context),
                       );
                     },
                   ),
@@ -144,7 +139,10 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
 
                         if (_userInputController!.text.isEmpty) {
                           showCustomSnackBar(getTranslated('enter_email_or_phone', context), context);
-                        }else{
+                        } else if(!NumberCheckerHelper.isNumber(_userInputController!.text.trim())) {
+                          showCustomSnackBar(getTranslated('enter_phone_number', context), context);
+                        }
+                          else{
                           String userInput = _userInputController!.text.trim();
                           bool isNumber = NumberCheckerHelper.isNumber(userInput);
 
